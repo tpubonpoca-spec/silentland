@@ -1,9 +1,23 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const TEXT = {
+  fillLocalApi: "??????? localApiBase ? index.html",
+  empty: "???? ?????",
+  localApiMissing: "local api ?? ?????",
+  fillEmailPassword: "??????? email ? ??????",
+  signInOk: "???? ????????",
+  accountCreated: "??????? ??????",
+  signOutOk: "????? ????????",
+  chooseFiles: "?????? ?????",
+  done: "??????",
+  refreshing: "????????",
+  errorPrefix: "??????: ",
+  listErrorPrefix: "?????? ??????: ",
+  uploaded: "?????????",
+  filesLabel: "??????"
+};
 
 const config = window.APP_CONFIG || {};
-const supabaseUrl = (config.supabaseUrl || "").trim();
-const supabaseAnonKey = (config.supabaseAnonKey || "").trim();
-const bucket = (config.bucket || "media").trim();
+const localApiBase = (config.localApiBase || "").trim().replace(/\/$/, "");
+const hasLocal = Boolean(localApiBase);
 
 const authCard = document.getElementById("authCard");
 const uploadCard = document.getElementById("uploadCard");
@@ -23,17 +37,15 @@ const emailInput = document.getElementById("emailInput");
 const passwordInput = document.getElementById("passwordInput");
 const fileInput = document.getElementById("fileInput");
 
-const hasConfig = Boolean(supabaseUrl && supabaseAnonKey);
-if (!hasConfig) {
+let localToken = localStorage.getItem("localToken") || "";
+
+if (!hasLocal) {
   configCard.hidden = false;
-  authCard.dataset.locked = "true";
-  setStatus(authMessage, "заполни APP_CONFIG в index.html", "error");
+  setStatus(authMessage, TEXT.fillLocalApi, "error");
   disableControls();
 } else {
   configCard.hidden = true;
 }
-
-const supabase = hasConfig ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 function disableControls() {
   [signInBtn, signUpBtn, uploadBtn, refreshBtn, signOutBtn].forEach((btn) => {
@@ -49,19 +61,25 @@ function setStatus(element, message, tone = "info") {
   element.dataset.tone = tone;
 }
 
+function clearStatus() {
+  setStatus(authMessage, "", "info");
+  setStatus(uploadStatus, "", "info");
+}
+
 function sanitizeName(name) {
   return name.toLowerCase().replace(/[^a-z0-9._-]+/g, "_").slice(0, 60);
 }
 
-function isVideoFile(file) {
-  if (file.metadata && file.metadata.mimetype) {
-    return file.metadata.mimetype.startsWith("video/");
+function isVideoFile(item) {
+  const mime = item?.mime_type;
+  if (mime) {
+    return mime.startsWith("video/");
   }
-  return /\.(mp4|webm|mov|m4v|avi)$/i.test(file.name || "");
+  const name = item?.name || "";
+  return /\.(mp4|webm|mov|m4v|avi)$/i.test(name);
 }
 
-function updateUi(session) {
-  const signedIn = Boolean(session);
+function updateUi(signedIn) {
   authCard.hidden = signedIn;
   uploadCard.hidden = !signedIn;
   galleryCard.hidden = !signedIn;
@@ -70,8 +88,40 @@ function updateUi(session) {
 
   if (!signedIn) {
     galleryGrid.innerHTML = "";
-    galleryCount.textContent = "пока пусто";
+    galleryCount.textContent = TEXT.empty;
   }
+}
+
+async function apiRequest(path, options = {}) {
+  if (!localApiBase) {
+    throw new Error(TEXT.localApiMissing);
+  }
+
+  const headers = new Headers(options.headers || {});
+  const isForm = options.body instanceof FormData;
+
+  if (!isForm && options.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (localToken) {
+    headers.set("Authorization", `Bearer ${localToken}`);
+  }
+
+  const response = await fetch(`${localApiBase}${path}`, {
+    ...options,
+    headers,
+    body: isForm ? options.body : options.body ? JSON.stringify(options.body) : undefined
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json") ? await response.json().catch(() => ({})) : {};
+
+  if (!response.ok) {
+    const message = data.error || `http ${response.status}`;
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 async function signIn() {
@@ -79,15 +129,19 @@ async function signIn() {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   if (!email || !password) {
-    setStatus(authMessage, "заполни email и пароль", "error");
+    setStatus(authMessage, TEXT.fillEmailPassword, "error");
     return;
   }
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    setStatus(authMessage, error.message.toLowerCase(), "error");
-    return;
+  try {
+    const data = await apiRequest("/api/auth/signin", { method: "POST", body: { email, password } });
+    localToken = data.token;
+    localStorage.setItem("localToken", localToken);
+    updateUi(true);
+    setStatus(authMessage, TEXT.signInOk, "success");
+    await refreshGallery();
+  } catch (error) {
+    setStatus(authMessage, `${TEXT.errorPrefix}${error.message}`, "error");
   }
-  setStatus(authMessage, "пока пусто???", "success");
 }
 
 async function signUp() {
@@ -95,37 +149,39 @@ async function signUp() {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   if (!email || !password) {
-    setStatus(authMessage, "заполни email и пароль", "error");
+    setStatus(authMessage, TEXT.fillEmailPassword, "error");
     return;
   }
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) {
-    setStatus(authMessage, error.message.toLowerCase(), "error");
-    return;
-  }
-  if (data.session) {
-    setStatus(authMessage, "???пока пусто?", "success");
-  } else {
-    setStatus(authMessage, "???пока пусто ??? готовоготово?", "info");
+  try {
+    const data = await apiRequest("/api/auth/signup", { method: "POST", body: { email, password } });
+    localToken = data.token;
+    localStorage.setItem("localToken", localToken);
+    updateUi(true);
+    setStatus(authMessage, TEXT.accountCreated, "success");
+    await refreshGallery();
+  } catch (error) {
+    setStatus(authMessage, `${TEXT.errorPrefix}${error.message}`, "error");
   }
 }
 
 async function signOut() {
   clearStatus();
-  await supabase.auth.signOut();
-  setStatus(authMessage, "?пока пусто???", "info");
-}
-
-function clearStatus() {
-  setStatus(authMessage, "", "info");
-  setStatus(uploadStatus, "", "info");
+  try {
+    await apiRequest("/api/auth/signout", { method: "POST" });
+  } catch (error) {
+    // ignore
+  }
+  localToken = "";
+  localStorage.removeItem("localToken");
+  updateUi(false);
+  setStatus(authMessage, TEXT.signOutOk, "info");
 }
 
 async function uploadFiles() {
   clearStatus();
   const files = Array.from(fileInput.files || []);
   if (!files.length) {
-    setStatus(uploadStatus, "??пока пусто", "error");
+    setStatus(uploadStatus, TEXT.chooseFiles, "error");
     return;
   }
 
@@ -133,79 +189,61 @@ async function uploadFiles() {
   let uploaded = 0;
 
   for (const file of files) {
-    const fileName = sanitizeName(file.name || "file");
-    const uniqueId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
-    const filePath = `shared/${uniqueId}-${fileName}`;
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const { error } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, file, { cacheControl: "3600", upsert: false, contentType: file.type });
-
-    if (error) {
-      setStatus(uploadStatus, `ошибка: ${error.message.toLowerCase()}`, "error");
+    try {
+      await apiRequest("/api/upload", { method: "POST", body: formData });
+      uploaded += 1;
+      setStatus(uploadStatus, `${TEXT.uploaded} ${uploaded} ?? ${files.length}`, "info");
+    } catch (error) {
+      setStatus(uploadStatus, `${TEXT.errorPrefix}${error.message}`, "error");
       uploadBtn.disabled = false;
       return;
     }
-    uploaded += 1;
-    setStatus(uploadStatus, `загружено ${uploaded} из ${files.length}`, "info");
   }
 
   uploadBtn.disabled = false;
   fileInput.value = "";
-  setStatus(uploadStatus, "готово", "success");
+  setStatus(uploadStatus, TEXT.done, "success");
   await refreshGallery();
 }
 
 async function refreshGallery() {
-  if (!galleryGrid) return;
-  setStatus(uploadStatus, "готово??", "info");
+  try {
+    setStatus(uploadStatus, TEXT.refreshing, "info");
+    const data = await apiRequest("/api/files");
+    const files = data.files || [];
 
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .list("shared", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
+    if (!files.length) {
+      galleryGrid.innerHTML = "";
+      galleryCount.textContent = TEXT.empty;
+      setStatus(uploadStatus, "", "info");
+      return;
+    }
 
-  if (error) {
-    setStatus(uploadStatus, `??пока пусто?: ${error.message.toLowerCase()}`, "error");
-    return;
-  }
-
-  if (!data || data.length === 0) {
     galleryGrid.innerHTML = "";
-    galleryCount.textContent = "пока пусто";
+    files.forEach((file) => {
+      galleryGrid.appendChild(
+        renderMediaItem({
+          name: file.original_name || file.name,
+          url: file.url,
+          mime_type: file.mime_type
+        })
+      );
+    });
+    galleryCount.textContent = `${TEXT.filesLabel}: ${files.length}`;
     setStatus(uploadStatus, "", "info");
-    return;
+  } catch (error) {
+    setStatus(uploadStatus, `${TEXT.listErrorPrefix}${error.message}`, "error");
   }
-
-  galleryGrid.innerHTML = "";
-
-  const items = await Promise.all(
-    data.map(async (file) => {
-      const path = `shared/${file.name}`;
-      const { data: urlData, error: urlError } = await supabase.storage
-        .from(bucket)
-        .createSignedUrl(path, 60 * 60);
-      if (urlError) {
-        return null;
-      }
-      return {
-        name: file.name,
-        url: urlData.signedUrl,
-        meta: file
-      };
-    })
-  );
-
-  const filtered = items.filter(Boolean);
-  filtered.forEach((item) => galleryGrid.appendChild(renderMediaItem(item)));
-  galleryCount.textContent = `готово: ${filtered.length}`;
-  setStatus(uploadStatus, "", "info");
 }
 
 function renderMediaItem(item) {
   const wrapper = document.createElement("article");
   wrapper.className = "media-item";
 
-  const media = isVideoFile(item.meta) ? document.createElement("video") : document.createElement("img");
+  const media = isVideoFile(item) ? document.createElement("video") : document.createElement("img");
   if (media.tagName === "VIDEO") {
     media.controls = true;
     media.playsInline = true;
@@ -225,22 +263,29 @@ function renderMediaItem(item) {
   return wrapper;
 }
 
-if (hasConfig) {
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-  updateUi(session);
-  if (session) {
-    refreshGallery();
+async function checkLocalSession() {
+  if (!localToken) {
+    updateUi(false);
+    return;
   }
+  try {
+    await apiRequest("/api/auth/me");
+    updateUi(true);
+    await refreshGallery();
+  } catch (error) {
+    localToken = "";
+    localStorage.removeItem("localToken");
+    updateUi(false);
+  }
+}
 
-  supabase.auth.onAuthStateChange((_event, updatedSession) => {
-    updateUi(updatedSession);
-    if (updatedSession) {
-      refreshGallery();
-    }
-  });
+async function init() {
+  if (hasLocal) {
+    await checkLocalSession();
+  }
+}
 
+if (hasLocal) {
   authForm.addEventListener("submit", (event) => {
     event.preventDefault();
     signIn();
@@ -252,3 +297,5 @@ if (hasConfig) {
   uploadBtn.addEventListener("click", uploadFiles);
   refreshBtn.addEventListener("click", refreshGallery);
 }
+
+init();
