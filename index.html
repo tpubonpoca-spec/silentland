@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>WWF.xxx ? ????? ??????</title>
-    <meta name="description" content="???? ? ??????????. ????? ??????." />
+    <title>WWF.xxx — скоро запуск</title>
+    <meta name="description" content="Сайт в разработке. Скоро запуск." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,11 +17,11 @@
     <div id="splash" class="splash" aria-hidden="false">
       <main>
         <section class="card">
-          <div class="badge">? ??????????</div>
+          <div class="badge">в разработке</div>
           <h1>WWF.xxx</h1>
-          <p>?? ??????? ?????? ? ????????? ???? ?????????. ????????????? ???? ?????.</p>
+          <p>Мы готовим запуск и наполняем сайт контентом. Возвращайтесь чуть позже.</p>
           <div class="meta">
-            <span>????? ??????</span>
+            <span>скоро запуск</span>
           </div>
         </section>
       </main>
@@ -48,15 +48,15 @@
           <div>
             <div class="app-kicker">private media vault</div>
             <h2>silentland</h2>
-            <p class="app-lead">?????? ????????? ??? ???? ? ????? ??? ????? ??????. ?????? ?????? ?? ????????.</p>
+            <p class="app-lead">Личное хранилище для фото и видео для круга друзей. Доступ только по аккаунту.</p>
           </div>
-          <button class="btn btn-ghost" type="button" id="signOutBtn">?????</button>
+          <button class="btn btn-ghost" type="button" id="signOutBtn">выйти</button>
         </header>
 
         <section class="card auth-card" id="authCard">
           <div>
-            <h3>??????</h3>
-            <p class="muted">????? ??? ?????? ???????. ????? ???????? ???????? ? ???????.</p>
+            <h3>доступ</h3>
+            <p class="muted">Войди или создай аккаунт. Потом появится загрузка и галерея.</p>
           </div>
           <form class="form" id="authForm">
             <label class="field">
@@ -64,12 +64,12 @@
               <input type="email" id="emailInput" placeholder="mail@domain.com" autocomplete="email" required />
             </label>
             <label class="field">
-              <span>??????</span>
+              <span>пароль</span>
               <input type="password" id="passwordInput" minlength="6" autocomplete="current-password" required />
             </label>
             <div class="form-actions">
-              <button class="btn btn-primary" type="button" id="signInBtn">?????</button>
-              <button class="btn btn-ghost" type="button" id="signUpBtn">???????????</button>
+              <button class="btn btn-primary" type="button" id="signInBtn">войти</button>
+              <button class="btn btn-ghost" type="button" id="signUpBtn">регистрация</button>
             </div>
             <div class="status" id="authMessage"></div>
           </form>
@@ -78,14 +78,14 @@
         <section class="card upload-card" id="uploadCard" hidden>
           <div class="section-header">
             <div>
-              <h3>????????</h3>
-              <p class="muted">???????? ???? ? ????? ? ????? ????????.</p>
+              <h3>загрузка</h3>
+              <p class="muted">Добавляй фото и видео в общую подборку.</p>
             </div>
-            <button class="btn btn-ghost" type="button" id="refreshBtn">????????</button>
+            <button class="btn btn-ghost" type="button" id="refreshBtn">обновить</button>
           </div>
           <div class="upload-row">
             <input class="file-input" type="file" id="fileInput" accept="image/*,video/*" multiple />
-            <button class="btn btn-primary" type="button" id="uploadBtn">?????????</button>
+            <button class="btn btn-primary" type="button" id="uploadBtn">загрузить</button>
           </div>
           <div class="status" id="uploadStatus"></div>
         </section>
@@ -93,8 +93,8 @@
         <section class="card gallery-card" id="galleryCard" hidden>
           <div class="section-header">
             <div>
-              <h3>???????</h3>
-              <p class="muted" id="galleryCount">???? ?????</p>
+              <h3>галерея</h3>
+              <p class="muted" id="galleryCount">пока пусто</p>
             </div>
           </div>
           <div class="gallery-grid" id="galleryGrid"></div>
@@ -102,8 +102,8 @@
 
         <section class="card info-card" id="configCard">
           <div>
-            <h3>????????? ?????????? ???????</h3>
-            <p class="muted">????? localApiBase ? APP_CONFIG ????, ????? ?????? ????????.</p>
+            <h3>настройка локального сервера</h3>
+            <p class="muted">Укажи localApiBase в APP_CONFIG ниже, затем обнови страницу.</p>
           </div>
           <div class="meta">
             <span>local api</span>

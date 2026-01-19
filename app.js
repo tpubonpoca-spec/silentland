@@ -1,18 +1,18 @@
 const TEXT = {
-  fillLocalApi: "??????? localApiBase ? index.html",
-  empty: "???? ?????",
-  localApiMissing: "local api ?? ?????",
-  fillEmailPassword: "??????? email ? ??????",
-  signInOk: "???? ????????",
-  accountCreated: "??????? ??????",
-  signOutOk: "????? ????????",
-  chooseFiles: "?????? ?????",
-  done: "??????",
-  refreshing: "????????",
-  errorPrefix: "??????: ",
-  listErrorPrefix: "?????? ??????: ",
-  uploaded: "?????????",
-  filesLabel: "??????"
+  fillLocalApi: "заполни localApiBase в index.html",
+  empty: "пока пусто",
+  localApiMissing: "local api не задан",
+  fillEmailPassword: "заполни email и пароль",
+  signInOk: "вход выполнен",
+  accountCreated: "аккаунт создан",
+  signOutOk: "выход выполнен",
+  chooseFiles: "выбери файлы",
+  done: "готово",
+  refreshing: "обновляю",
+  errorPrefix: "ошибка: ",
+  listErrorPrefix: "ошибка списка: ",
+  uploaded: "загружено",
+  filesLabel: "файлов"
 };
 
 const config = window.APP_CONFIG || {};
@@ -195,7 +195,7 @@ async function uploadFiles() {
     try {
       await apiRequest("/api/upload", { method: "POST", body: formData });
       uploaded += 1;
-      setStatus(uploadStatus, `${TEXT.uploaded} ${uploaded} ?? ${files.length}`, "info");
+      setStatus(uploadStatus, `${TEXT.uploaded} ${uploaded} из ${files.length}`, "info");
     } catch (error) {
       setStatus(uploadStatus, `${TEXT.errorPrefix}${error.message}`, "error");
       uploadBtn.disabled = false;
