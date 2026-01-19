@@ -27,7 +27,7 @@ const hasConfig = Boolean(supabaseUrl && supabaseAnonKey);
 if (!hasConfig) {
   configCard.hidden = false;
   authCard.dataset.locked = "true";
-  setStatus(authMessage, "??????? APP_CONFIG ? index.html", "error");
+  setStatus(authMessage, "заполни APP_CONFIG в index.html", "error");
   disableControls();
 } else {
   configCard.hidden = true;
@@ -70,7 +70,7 @@ function updateUi(session) {
 
   if (!signedIn) {
     galleryGrid.innerHTML = "";
-    galleryCount.textContent = "???? ?????";
+    galleryCount.textContent = "пока пусто";
   }
 }
 
@@ -79,7 +79,7 @@ async function signIn() {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   if (!email || !password) {
-    setStatus(authMessage, "??????? email ? ??????", "error");
+    setStatus(authMessage, "заполни email и пароль", "error");
     return;
   }
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -87,7 +87,7 @@ async function signIn() {
     setStatus(authMessage, error.message.toLowerCase(), "error");
     return;
   }
-  setStatus(authMessage, "???? ????????", "success");
+  setStatus(authMessage, "пока пусто???", "success");
 }
 
 async function signUp() {
@@ -95,7 +95,7 @@ async function signUp() {
   const email = emailInput.value.trim();
   const password = passwordInput.value;
   if (!email || !password) {
-    setStatus(authMessage, "??????? email ? ??????", "error");
+    setStatus(authMessage, "заполни email и пароль", "error");
     return;
   }
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -104,16 +104,16 @@ async function signUp() {
     return;
   }
   if (data.session) {
-    setStatus(authMessage, "??????? ??????", "success");
+    setStatus(authMessage, "???пока пусто?", "success");
   } else {
-    setStatus(authMessage, "??????? ????? ??? ?????????????", "info");
+    setStatus(authMessage, "???пока пусто ??? готовоготово?", "info");
   }
 }
 
 async function signOut() {
   clearStatus();
   await supabase.auth.signOut();
-  setStatus(authMessage, "????? ????????", "info");
+  setStatus(authMessage, "?пока пусто???", "info");
 }
 
 function clearStatus() {
@@ -125,7 +125,7 @@ async function uploadFiles() {
   clearStatus();
   const files = Array.from(fileInput.files || []);
   if (!files.length) {
-    setStatus(uploadStatus, "?????? ?????", "error");
+    setStatus(uploadStatus, "??пока пусто", "error");
     return;
   }
 
@@ -142,36 +142,36 @@ async function uploadFiles() {
       .upload(filePath, file, { cacheControl: "3600", upsert: false, contentType: file.type });
 
     if (error) {
-      setStatus(uploadStatus, `??????: ${error.message.toLowerCase()}`, "error");
+      setStatus(uploadStatus, `ошибка: ${error.message.toLowerCase()}`, "error");
       uploadBtn.disabled = false;
       return;
     }
     uploaded += 1;
-    setStatus(uploadStatus, `????????? ${uploaded} ?? ${files.length}`, "info");
+    setStatus(uploadStatus, `загружено ${uploaded} из ${files.length}`, "info");
   }
 
   uploadBtn.disabled = false;
   fileInput.value = "";
-  setStatus(uploadStatus, "??????", "success");
+  setStatus(uploadStatus, "готово", "success");
   await refreshGallery();
 }
 
 async function refreshGallery() {
   if (!galleryGrid) return;
-  setStatus(uploadStatus, "????????", "info");
+  setStatus(uploadStatus, "готово??", "info");
 
   const { data, error } = await supabase.storage
     .from(bucket)
     .list("shared", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
 
   if (error) {
-    setStatus(uploadStatus, `?????? ??????: ${error.message.toLowerCase()}`, "error");
+    setStatus(uploadStatus, `??пока пусто?: ${error.message.toLowerCase()}`, "error");
     return;
   }
 
   if (!data || data.length === 0) {
     galleryGrid.innerHTML = "";
-    galleryCount.textContent = "???? ?????";
+    galleryCount.textContent = "пока пусто";
     setStatus(uploadStatus, "", "info");
     return;
   }
@@ -197,7 +197,7 @@ async function refreshGallery() {
 
   const filtered = items.filter(Boolean);
   filtered.forEach((item) => galleryGrid.appendChild(renderMediaItem(item)));
-  galleryCount.textContent = `??????: ${filtered.length}`;
+  galleryCount.textContent = `готово: ${filtered.length}`;
   setStatus(uploadStatus, "", "info");
 }
 
