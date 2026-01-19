@@ -11,185 +11,40 @@
       href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&display=swap"
       rel="stylesheet"
     />
-    <style>
-      :root {
-        --bg-1: #0b1320;
-        --bg-2: #18253c;
-        --accent: #f4c24d;
-        --text: #f6f3ed;
-        --muted: #c7c3b8;
-        --card: rgba(8, 12, 20, 0.55);
-        --stroke: rgba(255, 255, 255, 0.12);
-        --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        font-family: "Unbounded", "Trebuchet MS", sans-serif;
-        color: var(--text);
-        background: radial-gradient(1200px 600px at 15% 15%, #2a3a54 0%, transparent 55%),
-          radial-gradient(900px 700px at 85% 20%, #223350 0%, transparent 60%),
-          linear-gradient(160deg, var(--bg-1), var(--bg-2));
-      }
-
-      body {
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      body::before,
-      body::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-      }
-
-      body::before {
-        background-image: repeating-linear-gradient(
-            135deg,
-            rgba(255, 255, 255, 0.04) 0,
-            rgba(255, 255, 255, 0.04) 1px,
-            transparent 1px,
-            transparent 14px
-          ),
-          repeating-linear-gradient(
-            45deg,
-            rgba(255, 255, 255, 0.03) 0,
-            rgba(255, 255, 255, 0.03) 1px,
-            transparent 1px,
-            transparent 22px
-          );
-        opacity: 0.7;
-      }
-
-      body::after {
-        background: radial-gradient(500px 300px at 80% 85%, rgba(244, 194, 77, 0.18), transparent 70%);
-      }
-
-      main {
-        width: min(820px, 100%);
-        position: relative;
-        z-index: 1;
-      }
-
-      .card {
-        border: 1px solid var(--stroke);
-        border-radius: 28px;
-        padding: clamp(24px, 5vw, 44px);
-        background: var(--card);
-        backdrop-filter: blur(12px);
-        box-shadow: var(--shadow);
-        display: grid;
-        gap: 18px;
-        animation: fadeUp 800ms ease forwards;
-      }
-
-      .badge {
-        width: fit-content;
-        padding: 8px 14px;
-        border-radius: 999px;
-        font-size: 12px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        background: rgba(244, 194, 77, 0.15);
-        color: var(--accent);
-        border: 1px solid rgba(244, 194, 77, 0.4);
-      }
-
-      h1 {
-        font-size: clamp(32px, 7vw, 56px);
-        margin: 0;
-        line-height: 1.1;
-      }
-
-      p {
-        margin: 0;
-        font-size: clamp(16px, 2.4vw, 20px);
-        color: var(--muted);
-        max-width: 46ch;
-      }
-
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        padding-top: 8px;
-      }
-
-      .meta span {
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid var(--stroke);
-        background: rgba(15, 20, 32, 0.65);
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .meta span:nth-child(1) {
-        animation: rise 700ms ease forwards 150ms;
-        opacity: 0;
-      }
-
-      .meta span:nth-child(2) {
-        animation: rise 700ms ease forwards 280ms;
-        opacity: 0;
-      }
-
-      @keyframes fadeUp {
-        from {
-          opacity: 0;
-          transform: translateY(16px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @media (max-width: 600px) {
-        .meta {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .meta span {
-          width: 100%;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main>
-      <section class="card">
-        <div class="badge">в разработке</div>
-        <h1>WWF.xxx</h1>
-        <p>Мы готовим запуск и наполняем сайт контентом. Возвращайтесь чуть позже.</p>
-        <div class="meta">
-          <span>скоро запуск</span>
-        </div>
-      </section>
-    </main>
+    <div id="splash" class="splash" aria-hidden="false">
+      <main>
+        <section class="card">
+          <div class="badge">в разработке</div>
+          <h1>WWF.xxx</h1>
+          <p>Мы готовим запуск и наполняем сайт контентом. Возвращайтесь чуть позже.</p>
+          <div class="meta">
+            <span>скоро запуск</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="app" class="app" aria-hidden="true">
+      <main class="app-shell">
+        <!-- здесь будет основной контент сайта -->
+      </main>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("dev") === "1") {
+        localStorage.setItem("devMode", "1");
+      }
+      if (params.get("dev") === "0") {
+        localStorage.removeItem("devMode");
+      }
+      const isDev = localStorage.getItem("devMode") === "1";
+      document.body.classList.toggle("show-site", isDev);
+      document.getElementById("splash").setAttribute("aria-hidden", String(isDev));
+      document.getElementById("app").setAttribute("aria-hidden", String(!isDev));
+    </script>
   </body>
 </html>
