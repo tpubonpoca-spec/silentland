@@ -2,6 +2,7 @@
   --bg-1: #0a0a0a;
   --bg-2: #1b1b1b;
   --accent: #ffffff;
+  --blood: #3a0707;
   --text: #f7f7f7;
   --muted: #b6b6b6;
   --card: rgba(9, 9, 9, 0.72);
@@ -81,6 +82,32 @@ body::after {
   transition: opacity 450ms ease;
 }
 
+.brand {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 3;
+  color: var(--blood);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 12px rgba(90, 0, 0, 0.45));
+}
+
+.brand-icon {
+  width: 54px;
+  height: 54px;
+  fill: currentColor;
+  stroke: none;
+  shape-rendering: crispEdges;
+  animation: sigilFlicker 3.6s steps(2, end) infinite;
+}
+
+.mark-detail {
+  opacity: 0.55;
+}
+
 body.show-site .splash {
   opacity: 0;
   pointer-events: none;
@@ -102,6 +129,177 @@ body.show-site .app {
   margin: 0 auto;
   display: grid;
   gap: 24px;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-kicker {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.app-header h2 {
+  margin: 6px 0 8px;
+  font-size: clamp(28px, 4vw, 42px);
+}
+
+.app-lead {
+  color: var(--muted);
+}
+
+.app-shell p {
+  font-size: 16px;
+  max-width: 64ch;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.field input {
+  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  background: rgba(6, 6, 6, 0.85);
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.field input:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 10px 18px;
+  font-size: 14px;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-ghost {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.file-input {
+  flex: 1;
+  min-width: 220px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  background: rgba(8, 8, 8, 0.7);
+  color: var(--muted);
+  padding: 14px;
+  font-family: inherit;
+}
+
+.status {
+  min-height: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status[data-tone="error"] {
+  color: #ff9f9f;
+}
+
+.status[data-tone="success"] {
+  color: #b5ffd6;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.media-item {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 8, 8, 0.6);
+  display: grid;
+}
+
+.media-item img,
+.media-item video {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.media-meta {
+  padding: 10px 12px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
 }
 
 .card {
@@ -171,6 +369,16 @@ h1 {
   line-height: 1.1;
 }
 
+h2 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
 p {
   margin: 0;
   font-size: clamp(16px, 2.4vw, 20px);
@@ -237,6 +445,30 @@ p {
   55% {
     transform: translateX(35%);
     opacity: 0.45;
+  }
+}
+
+@keyframes sigilFlicker {
+  0%,
+  100% {
+    opacity: 0.95;
+    transform: translate(0, 0);
+  }
+  28% {
+    opacity: 0.65;
+    transform: translate(-1px, 1px);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  68% {
+    opacity: 0.8;
+    transform: translate(1px, -1px);
+  }
+  72% {
+    opacity: 0.6;
+    transform: translate(0, 0);
   }
 }
 

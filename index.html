@@ -28,11 +28,100 @@
     </div>
 
     <div id="app" class="app" aria-hidden="true">
+      <div class="brand" aria-hidden="true">
+        <svg class="brand-icon" viewBox="0 0 64 64" role="img" aria-hidden="true">
+          <path class="mark-eyes" d="M6 28L28 16L33 18L16 33L8 32Z" />
+          <path class="mark-eyes" d="M58 28L36 16L31 18L48 33L56 32Z" />
+          <path class="mark-detail" d="M12 22L24 18L26 20L14 24Z" />
+          <path class="mark-detail" d="M52 22L40 18L38 20L50 24Z" />
+          <path class="mark-detail" d="M30 18L32 14L34 18L32 20Z" />
+          <path class="mark-mouth" d="M8 36L16 34L22 36L28 34L32 36L36 34L42 36L48 34L56 36L54 40L50 42L48 46L44 42L40 48L36 42L32 50L28 42L24 48L20 42L16 46L12 42Z" />
+          <path class="mark-detail" d="M18 44L20 54L24 44Z" />
+          <path class="mark-detail" d="M28 46L30 58L34 46Z" />
+          <path class="mark-detail" d="M40 46L42 58L46 46Z" />
+          <path class="mark-detail" d="M50 44L52 54L56 44Z" />
+        </svg>
+      </div>
+
       <main class="app-shell">
-        <!-- здесь будет основной контент сайта -->
+        <header class="app-header">
+          <div>
+            <div class="app-kicker">private media vault</div>
+            <h2>silentland</h2>
+            <p class="app-lead">Личное хранилище для фото и видео для круга друзей. Доступ только по аккаунту.</p>
+          </div>
+          <button class="btn btn-ghost" type="button" id="signOutBtn">выйти</button>
+        </header>
+
+        <section class="card auth-card" id="authCard">
+          <div>
+            <h3>доступ</h3>
+            <p class="muted">Войди или создай аккаунт. Потом появится загрузка и галерея.</p>
+          </div>
+          <form class="form" id="authForm">
+            <label class="field">
+              <span>email</span>
+              <input type="email" id="emailInput" placeholder="mail@domain.com" autocomplete="email" required />
+            </label>
+            <label class="field">
+              <span>пароль</span>
+              <input type="password" id="passwordInput" minlength="6" autocomplete="current-password" required />
+            </label>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="button" id="signInBtn">войти</button>
+              <button class="btn btn-ghost" type="button" id="signUpBtn">регистрация</button>
+            </div>
+            <div class="status" id="authMessage"></div>
+          </form>
+        </section>
+
+        <section class="card upload-card" id="uploadCard" hidden>
+          <div class="section-header">
+            <div>
+              <h3>загрузка</h3>
+              <p class="muted">Добавляй фото и видео в общую подборку.</p>
+            </div>
+            <button class="btn btn-ghost" type="button" id="refreshBtn">обновить</button>
+          </div>
+          <div class="upload-row">
+            <input class="file-input" type="file" id="fileInput" accept="image/*,video/*" multiple />
+            <button class="btn btn-primary" type="button" id="uploadBtn">загрузить</button>
+          </div>
+          <div class="status" id="uploadStatus"></div>
+        </section>
+
+        <section class="card gallery-card" id="galleryCard" hidden>
+          <div class="section-header">
+            <div>
+              <h3>галерея</h3>
+              <p class="muted" id="galleryCount">пока пусто</p>
+            </div>
+          </div>
+          <div class="gallery-grid" id="galleryGrid"></div>
+        </section>
+
+        <section class="card info-card" id="configCard">
+          <div>
+            <h3>настройка supabase</h3>
+            <p class="muted">Укажи url и anon key в блоке APP_CONFIG ниже, затем обнови страницу.</p>
+          </div>
+          <div class="meta">
+            <span>supabase url</span>
+            <span>anon key</span>
+            <span>bucket: media</span>
+          </div>
+        </section>
       </main>
     </div>
 
+    <script>
+      window.APP_CONFIG = {
+        supabaseUrl: "https://YOUR_PROJECT.supabase.co",
+        supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY",
+        bucket: "media"
+      };
+    </script>
+    <script type="module" src="app.js"></script>
     <script>
       const params = new URLSearchParams(window.location.search);
       if (params.get("dev") === "1") {
