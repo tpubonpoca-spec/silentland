@@ -1,21 +1,21 @@
 {
   "version": "1.0",
-  "updated": "2026-05-20T20:29:14.829Z",
+  "updated": "2026-05-20T20:32:08.805Z",
   "patterns": [
     {
       "id": "pattern-001",
       "category": "ui",
       "language": "cpp",
       "description": "pack_library.cpp — ui 패턴 (cpp)",
-      "score": 53,
-      "success_count": 2,
+      "score": 62,
+      "success_count": 5,
       "failure_count": 0,
       "tags": [
         "ui",
         "cpp"
       ],
       "created": "2026-05-20T20:27:29.285Z",
-      "updated": "2026-05-20T20:29:05.445Z"
+      "updated": "2026-05-20T20:32:08.802Z"
     },
     {
       "id": "pattern-002",
@@ -30,6 +30,21 @@
       ],
       "created": "2026-05-20T20:29:14.828Z",
       "updated": "2026-05-20T20:29:14.829Z"
+    },
+    {
+      "id": "pattern-003",
+      "category": "db",
+      "language": "cpp",
+      "description": "gui_main.cpp — db 패턴 (cpp)",
+      "score": 50,
+      "success_count": 1,
+      "failure_count": 0,
+      "tags": [
+        "db",
+        "cpp"
+      ],
+      "created": "2026-05-20T20:31:19.650Z",
+      "updated": "2026-05-20T20:31:19.650Z"
     }
   ],
   "anti_patterns": []

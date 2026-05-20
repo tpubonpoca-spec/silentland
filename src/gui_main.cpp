@@ -29,6 +29,8 @@ constexpr int kIdLog = 109;
 constexpr int kIdOpenFile = 110;
 constexpr int kIdDetail = 111;
 constexpr int kIdPackName = 112;
+constexpr int kIdMoveUp = 113;
+constexpr int kIdMoveDown = 114;
 
 struct AppState {
     HWND window = nullptr;
@@ -369,6 +371,42 @@ void AnalyzeCurrentHeroSelection(AppState* state) {
     }
 }
 
+void MovePackUp(AppState* state) {
+    const int index = GetSelectedListIndex(state->packList);
+    if (index <= 0 || index >= static_cast<int>(state->packs.size())) {
+        return;
+    }
+
+    std::swap(state->packs[index], state->packs[index - 1]);
+    std::swap(state->packScans[index], state->packScans[index - 1]);
+
+    ClearListBox(state->packList);
+    for (const auto& pack : state->packs) {
+        SendMessageW(state->packList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(pack.filename().wstring().c_str()));
+    }
+    SendMessageW(state->packList, LB_SETCURSEL, index - 1, 0);
+
+    AppendLog(state, L"Moved pack up: " + state->packs[index - 1].filename().wstring());
+}
+
+void MovePackDown(AppState* state) {
+    const int index = GetSelectedListIndex(state->packList);
+    if (index < 0 || index >= static_cast<int>(state->packs.size()) - 1) {
+        return;
+    }
+
+    std::swap(state->packs[index], state->packs[index + 1]);
+    std::swap(state->packScans[index], state->packScans[index + 1]);
+
+    ClearListBox(state->packList);
+    for (const auto& pack : state->packs) {
+        SendMessageW(state->packList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(pack.filename().wstring().c_str()));
+    }
+    SendMessageW(state->packList, LB_SETCURSEL, index + 1, 0);
+
+    AppendLog(state, L"Moved pack down: " + state->packs[index + 1].filename().wstring());
+}
+
 void ExportCurrentSelection(AppState* state) {
     const int heroIndex = GetSelectedListIndex(state->heroList);
     if (heroIndex < 0 || heroIndex >= static_cast<int>(state->visibleHeroes.size())) {
@@ -422,8 +460,11 @@ void BuildUi(HWND hwnd, AppState* state) {
 
     HWND leftGroup = CreateWindowW(L"BUTTON", L"Pack Selection", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 20, 168, 330, 520, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, leftGroup, true);
-    CreateWindowW(L"STATIC", L"Multi-select source packs", WS_VISIBLE | WS_CHILD, 36, 198, 160, 18, hwnd, nullptr, nullptr, nullptr);
-    state->packList = CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_NOTIFY | LBS_EXTENDEDSEL, 36, 220, 298, 450, hwnd, reinterpret_cast<HMENU>(kIdPackList), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Multi-select source packs (order = merge priority)", WS_VISIBLE | WS_CHILD, 36, 198, 260, 18, hwnd, nullptr, nullptr, nullptr);
+    state->packList = CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_NOTIFY | LBS_EXTENDEDSEL, 36, 220, 230, 420, hwnd, reinterpret_cast<HMENU>(kIdPackList), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Move Up", WS_VISIBLE | WS_CHILD, 274, 220, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveUp), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Move Down", WS_VISIBLE | WS_CHILD, 274, 254, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveDown), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Later packs override earlier ones", WS_VISIBLE | WS_CHILD, 36, 646, 200, 18, hwnd, nullptr, nullptr, nullptr);
 
     HWND centerGroup = CreateWindowW(L"BUTTON", L"Hero Profiles", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 364, 168, 260, 520, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, centerGroup, true);
@@ -506,6 +547,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
         }
         if (controlId == kIdExport && notifyCode == BN_CLICKED) {
             ExportCurrentSelection(state);
+            return 0;
+        }
+        if (controlId == kIdMoveUp && notifyCode == BN_CLICKED) {
+            MovePackUp(state);
+            RebuildHeroUnion(state);
+            AnalyzeCurrentHeroSelection(state);
+            return 0;
+        }
+        if (controlId == kIdMoveDown && notifyCode == BN_CLICKED) {
+            MovePackDown(state);
+            RebuildHeroUnion(state);
+            AnalyzeCurrentHeroSelection(state);
             return 0;
         }
         break;
