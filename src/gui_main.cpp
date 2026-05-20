@@ -114,7 +114,7 @@ std::filesystem::path PickFolder(HWND owner) {
     wchar_t buffer[MAX_PATH] = {};
     BROWSEINFOW browse = {};
     browse.hwndOwner = owner;
-    browse.lpszTitle = L"Choose folder";
+    browse.lpszTitle = L"Выберите папку";
     browse.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
     PIDLIST_ABSOLUTE item = SHBrowseForFolderW(&browse);
     if (!item) {
@@ -133,7 +133,7 @@ std::filesystem::path PickVpkFile(HWND owner) {
     OPENFILENAMEW dialog = {};
     dialog.lStructSize = sizeof(dialog);
     dialog.hwndOwner = owner;
-    dialog.lpstrFilter = L"VPK files\0*_dir.vpk\0All files\0*.*\0";
+    dialog.lpstrFilter = L"VPK файлы\0*_dir.vpk\0Все файлы\0*.*\0";
     dialog.lpstrFile = fileBuffer;
     dialog.nMaxFile = MAX_PATH;
     dialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
@@ -190,26 +190,26 @@ std::wstring FormatTopCounts(const std::unordered_map<std::string, std::size_t>&
 
 std::wstring FormatReport(const MultiPackHeroReport& report) {
     std::wstringstream out;
-    out << L"Hero Profile: " << ToWide(report.hero) << L"\r\n";
-    out << L"Sources: " << report.sources.size() << L"\r\n";
+    out << L"Профиль героя: " << ToWide(report.hero) << L"\r\n";
+    out << L"Источники: " << report.sources.size() << L"\r\n";
     for (const auto& source : report.sources) {
         out << L"  - " << ToWide(source.sourcePackName)
-            << L" | files=" << source.includedFiles.size()
-            << L" | models=" << source.models.size()
-            << L" | materials=" << source.materials.size()
-            << L" | effects=" << source.particles.size()
+            << L" | файлов=" << source.includedFiles.size()
+            << L" | моделей=" << source.models.size()
+            << L" | материалов=" << source.materials.size()
+            << L" | эффектов=" << source.particles.size()
             << L" | ui=" << source.uiAssets.size()
             << L"\r\n";
     }
 
-    out << L"\r\nMerged export summary\r\n";
-    out << L"  Total seed files: " << report.totalSeedFiles << L"\r\n";
-    out << L"  Total included files: " << report.totalIncludedFiles << L"\r\n";
-    out << L"  Unique merged files: " << report.mergedUniqueFiles << L"\r\n";
-    out << L"  Root distribution: " << FormatTopCounts(report.filesByRoot, 8) << L"\r\n";
-    out << L"  Extension distribution: " << FormatTopCounts(report.filesByExtension, 8) << L"\r\n";
+    out << L"\r\nСводка объединённого экспорта\r\n";
+    out << L"  Всего исходных файлов: " << report.totalSeedFiles << L"\r\n";
+    out << L"  Всего включённых файлов: " << report.totalIncludedFiles << L"\r\n";
+    out << L"  Уникальных объединённых файлов: " << report.mergedUniqueFiles << L"\r\n";
+    out << L"  Распределение по корням: " << FormatTopCounts(report.filesByRoot, 8) << L"\r\n";
+    out << L"  Распределение по расширениям: " << FormatTopCounts(report.filesByExtension, 8) << L"\r\n";
 
-    out << L"\r\nWhat this mod is likely replacing\r\n";
+    out << L"\r\nЧто вероятно заменяет этот мод\r\n";
     const std::size_t replacementLimit = std::min<std::size_t>(report.replacementHints.size(), 12);
     for (std::size_t i = 0; i < replacementLimit; ++i) {
         const auto& hint = report.replacementHints[i];
@@ -217,10 +217,10 @@ std::wstring FormatReport(const MultiPackHeroReport& report) {
         out << L"    " << ToWide(hint.note) << L"\r\n";
     }
     if (report.replacementHints.empty()) {
-        out << L"  - No semantic replacement hints were recognized.\r\n";
+        out << L"  - Семантические подсказки замены не распознаны.\r\n";
     }
 
-    out << L"\r\nPreview / media assets found\r\n";
+    out << L"\r\nНайденные превью / медиа ресурсы\r\n";
     const std::size_t previewLimit = std::min<std::size_t>(report.previewAssets.size(), 12);
     for (std::size_t i = 0; i < previewLimit; ++i) {
         const auto& preview = report.previewAssets[i];
@@ -228,27 +228,27 @@ std::wstring FormatReport(const MultiPackHeroReport& report) {
         out << L"    " << ToWide(preview.note) << L"\r\n";
     }
     if (report.previewAssets.empty()) {
-        out << L"  - No direct PNG/JPG/WEBM preview media found. Many Dota assets stay compiled in *_c format.\r\n";
+        out << L"  - Прямые PNG/JPG/WEBM превью не найдены. Многие ресурсы Dota остаются в скомпилированном *_c формате.\r\n";
     }
 
-    out << L"\r\nConflict report\r\n";
+    out << L"\r\nОтчёт о конфликтах\r\n";
     if (report.conflicts.empty()) {
-        out << L"  - No path conflicts across selected packs.\r\n";
+        out << L"  - Конфликтов путей между выбранными паками нет.\r\n";
     } else {
         const std::size_t conflictLimit = std::min<std::size_t>(report.conflicts.size(), 16);
         for (std::size_t i = 0; i < conflictLimit; ++i) {
             out << L"  - " << ToWide(report.conflicts[i]) << L"\r\n";
         }
         if (report.conflicts.size() > conflictLimit) {
-            out << L"  ... and " << (report.conflicts.size() - conflictLimit) << L" more conflicts.\r\n";
+            out << L"  ... и ещё " << (report.conflicts.size() - conflictLimit) << L" конфликтов.\r\n";
         }
     }
 
-    out << L"\r\nIn-game interpretation notes\r\n";
-    out << L"  - Models/materials usually change hero body parts, arcanas, or wearable meshes.\r\n";
-    out << L"  - Particles usually change spell casts, attacks, ambient glows, or impact visuals.\r\n";
-    out << L"  - Panorama/resource assets usually affect icons, portraits, loadout previews, or UI slots.\r\n";
-    out << L"  - Export keeps embedded preview media and UI assets when they are present in the source packs.\r\n";
+    out << L"\r\nПримечания по интерпретации в игре\r\n";
+    out << L"  - Модели/материалы обычно меняют части тела героя, арканы или носимые меши.\r\n";
+    out << L"  - Частицы обычно меняют каст заклинаний, атаки, окружающее свечение или визуальные эффекты попаданий.\r\n";
+    out << L"  - Ресурсы Panorama/resource обычно влияют на иконки, портреты, превью снаряжения или слоты UI.\r\n";
+    out << L"  - Экспорт сохраняет встроенные превью медиа и UI ресурсы, когда они присутствуют в исходных паках.\r\n";
     return out.str();
 }
 
@@ -304,7 +304,7 @@ void LoadPackDirectory(AppState* state) {
     ClearListBox(state->packList);
 
     if (summary.packs.empty()) {
-        AppendLog(state, L"No *_dir.vpk packs found in the selected folder.");
+        AppendLog(state, L"В выбранной папке не найдено *_dir.vpk паков.");
         return;
     }
 
@@ -313,9 +313,9 @@ void LoadPackDirectory(AppState* state) {
         std::wstringstream label;
         label << scan.packPath.filename().wstring();
         if (!scan.error.empty()) {
-            label << L"  |  scan error";
+            label << L"  |  ошибка сканирования";
         } else {
-            label << L"  |  " << scan.heroes.size() << L" heroes";
+            label << L"  |  " << scan.heroes.size() << L" героев";
         }
         const std::wstring text = label.str();
         SendMessageW(state->packList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(text.c_str()));
@@ -328,10 +328,10 @@ void LoadPackDirectory(AppState* state) {
     RebuildHeroUnion(state);
 
     std::wstringstream message;
-    message << L"Library loaded: " << state->packs.size() << L" packs from " << root.wstring();
+    message << L"Библиотека загружена: " << state->packs.size() << L" паков из " << root.wstring();
     AppendLog(state, message.str());
     if (!summary.heroCoverage.empty()) {
-        AppendLog(state, L"Top hero coverage: " + FormatTopCounts(std::unordered_map<std::string, std::size_t>(summary.heroCoverage.begin(), summary.heroCoverage.end()), 10));
+        AppendLog(state, L"Топ покрытия героев: " + FormatTopCounts(std::unordered_map<std::string, std::size_t>(summary.heroCoverage.begin(), summary.heroCoverage.end()), 10));
     }
 }
 
@@ -339,23 +339,23 @@ void LoadSinglePack(AppState* state, const std::filesystem::path& packPath) {
     state->packs = {packPath};
     state->packScans = {ScanPackHeroes(packPath)};
     ClearListBox(state->packList);
-    const std::wstring label = packPath.filename().wstring() + L"  |  " + std::to_wstring(state->packScans[0].heroes.size()) + L" heroes";
+    const std::wstring label = packPath.filename().wstring() + L"  |  " + std::to_wstring(state->packScans[0].heroes.size()) + L" героев";
     SendMessageW(state->packList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(label.c_str()));
     SendMessageW(state->packList, LB_SETSEL, TRUE, 0);
     RebuildHeroUnion(state);
-    AppendLog(state, L"Loaded single pack: " + packPath.wstring());
+    AppendLog(state, L"Загружен один пак: " + packPath.wstring());
 }
 
 void AnalyzeCurrentHeroSelection(AppState* state) {
     const int heroIndex = GetSelectedListIndex(state->heroList);
     if (heroIndex < 0 || heroIndex >= static_cast<int>(state->visibleHeroes.size())) {
-        SetWindowTextString(state->detailEdit, L"Choose one or more packs, then choose a hero.");
+        SetWindowTextString(state->detailEdit, L"Выберите один или несколько паков, затем выберите героя.");
         return;
     }
 
     const auto selectedPacks = GetSelectedPackPaths(state);
     if (selectedPacks.empty()) {
-        SetWindowTextString(state->detailEdit, L"Choose at least one pack.");
+        SetWindowTextString(state->detailEdit, L"Выберите хотя бы один пак.");
         return;
     }
 
@@ -363,11 +363,11 @@ void AnalyzeCurrentHeroSelection(AppState* state) {
         state->currentReport = AnalyzeHeroAcrossPacks(selectedPacks, state->visibleHeroes[heroIndex]);
         SetWindowTextString(state->detailEdit, FormatReport(*state->currentReport));
         SetDefaultPackName(state);
-        AppendLog(state, L"Analyzed hero " + ToWide(state->visibleHeroes[heroIndex]) + L" across " + std::to_wstring(selectedPacks.size()) + L" selected packs.");
+        AppendLog(state, L"Проанализирован герой " + ToWide(state->visibleHeroes[heroIndex]) + L" в " + std::to_wstring(selectedPacks.size()) + L" выбранных паках.");
     } catch (const std::exception& ex) {
         state->currentReport.reset();
         SetWindowTextString(state->detailEdit, ToWide(ex.what()));
-        AppendLog(state, L"Analysis failed: " + ToWide(ex.what()));
+        AppendLog(state, L"Анализ не удался: " + ToWide(ex.what()));
     }
 }
 
@@ -386,7 +386,7 @@ void MovePackUp(AppState* state) {
     }
     SendMessageW(state->packList, LB_SETCURSEL, index - 1, 0);
 
-    AppendLog(state, L"Moved pack up: " + state->packs[index - 1].filename().wstring());
+    AppendLog(state, L"Пак перемещён вверх: " + state->packs[index - 1].filename().wstring());
 }
 
 void MovePackDown(AppState* state) {
@@ -404,24 +404,24 @@ void MovePackDown(AppState* state) {
     }
     SendMessageW(state->packList, LB_SETCURSEL, index + 1, 0);
 
-    AppendLog(state, L"Moved pack down: " + state->packs[index + 1].filename().wstring());
+    AppendLog(state, L"Пак перемещён вниз: " + state->packs[index + 1].filename().wstring());
 }
 
 void ExportCurrentSelection(AppState* state) {
     const int heroIndex = GetSelectedListIndex(state->heroList);
     if (heroIndex < 0 || heroIndex >= static_cast<int>(state->visibleHeroes.size())) {
-        AppendLog(state, L"Choose a hero before export.");
+        AppendLog(state, L"Выберите героя перед экспортом.");
         return;
     }
     const auto selectedPacks = GetSelectedPackPaths(state);
     if (selectedPacks.empty()) {
-        AppendLog(state, L"Choose at least one source pack.");
+        AppendLog(state, L"Выберите хотя бы один исходный пак.");
         return;
     }
 
     const auto outputRoot = std::filesystem::path(GetWindowTextString(state->outputEdit));
     if (outputRoot.empty()) {
-        AppendLog(state, L"Choose an output folder first.");
+        AppendLog(state, L"Сначала выберите папку для экспорта.");
         return;
     }
 
@@ -432,10 +432,10 @@ void ExportCurrentSelection(AppState* state) {
 
     try {
         const std::filesystem::path exported = ExportMergedHeroPack(selectedPacks, state->visibleHeroes[heroIndex], outputPath);
-        AppendLog(state, L"Merged VPK exported: " + exported.wstring());
-        MessageBoxW(state->window, L"Merged VPK export completed.", L"dppbotcpp", MB_OK | MB_ICONINFORMATION);
+        AppendLog(state, L"Объединённый VPK экспортирован: " + exported.wstring());
+        MessageBoxW(state->window, L"Экспорт объединённого VPK завершён.", L"dppbotcpp", MB_OK | MB_ICONINFORMATION);
     } catch (const std::exception& ex) {
-        AppendLog(state, L"Export failed: " + ToWide(ex.what()));
+        AppendLog(state, L"Экспорт не удался: " + ToWide(ex.what()));
         MessageBoxW(state->window, ToWide(ex.what()).c_str(), L"dppbotcpp", MB_OK | MB_ICONERROR);
     }
 }
@@ -444,45 +444,45 @@ void BuildUi(HWND hwnd, AppState* state) {
     state->uiFont = CreateFontW(-18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
     state->uiFontBold = CreateFontW(-20, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI Semibold");
 
-    HWND header = CreateWindowW(L"STATIC", L"dppbotcpp Pack Studio", WS_VISIBLE | WS_CHILD, 20, 16, 400, 28, hwnd, nullptr, nullptr, nullptr);
+    HWND header = CreateWindowW(L"STATIC", L"dppbotcpp Студия Паков", WS_VISIBLE | WS_CHILD, 20, 16, 400, 28, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, header, true);
-    HWND subtitle = CreateWindowW(L"STATIC", L"Multi-pack hero analysis, preview-aware merge, and VPK export for Dota 2 mods", WS_VISIBLE | WS_CHILD, 20, 44, 700, 22, hwnd, nullptr, nullptr, nullptr);
+    HWND subtitle = CreateWindowW(L"STATIC", L"Мульти-пак анализ героев, объединение с учётом превью и экспорт VPK для модов Dota 2", WS_VISIBLE | WS_CHILD, 20, 44, 700, 22, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, subtitle);
 
-    HWND sourceGroup = CreateWindowW(L"BUTTON", L"Source Library", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 20, 78, 1240, 78, hwnd, nullptr, nullptr, nullptr);
+    HWND sourceGroup = CreateWindowW(L"BUTTON", L"Исходная Библиотека", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 20, 78, 1240, 78, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, sourceGroup, true);
-    CreateWindowW(L"STATIC", L"Folder with packs", WS_VISIBLE | WS_CHILD, 36, 108, 120, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Папка с паками", WS_VISIBLE | WS_CHILD, 36, 108, 120, 18, hwnd, nullptr, nullptr, nullptr);
     state->sourceEdit = CreateWindowW(L"EDIT", L"C:\\Users\\PMC\\Desktop\\train", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 36, 128, 720, 26, hwnd, reinterpret_cast<HMENU>(kIdSourceEdit), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Browse", WS_VISIBLE | WS_CHILD, 770, 128, 88, 26, hwnd, reinterpret_cast<HMENU>(kIdBrowseSource), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Open One VPK", WS_VISIBLE | WS_CHILD, 868, 128, 120, 26, hwnd, reinterpret_cast<HMENU>(kIdOpenFile), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Load Library", WS_VISIBLE | WS_CHILD, 998, 128, 120, 26, hwnd, reinterpret_cast<HMENU>(kIdLoadPacks), nullptr, nullptr);
-    CreateWindowW(L"STATIC", L"Tip: select multiple packs to build a merged hero VPK. Later packs in the list override earlier ones on path conflicts.", WS_VISIBLE | WS_CHILD, 36, 102, 700, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Обзор", WS_VISIBLE | WS_CHILD, 770, 128, 88, 26, hwnd, reinterpret_cast<HMENU>(kIdBrowseSource), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Открыть Один VPK", WS_VISIBLE | WS_CHILD, 868, 128, 120, 26, hwnd, reinterpret_cast<HMENU>(kIdOpenFile), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Загрузить Библиотеку", WS_VISIBLE | WS_CHILD, 998, 128, 120, 26, hwnd, reinterpret_cast<HMENU>(kIdLoadPacks), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Совет: выберите несколько паков для создания объединённого VPK героя. Поздние паки в списке переопределяют ранние при конфликтах путей.", WS_VISIBLE | WS_CHILD, 36, 102, 700, 18, hwnd, nullptr, nullptr, nullptr);
 
-    HWND leftGroup = CreateWindowW(L"BUTTON", L"Pack Selection", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 20, 168, 330, 520, hwnd, nullptr, nullptr, nullptr);
+    HWND leftGroup = CreateWindowW(L"BUTTON", L"Выбор Паков", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 20, 168, 330, 520, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, leftGroup, true);
-    CreateWindowW(L"STATIC", L"Multi-select source packs (order = merge priority)", WS_VISIBLE | WS_CHILD, 36, 198, 260, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Мульти-выбор исходных паков (порядок = приоритет объединения)", WS_VISIBLE | WS_CHILD, 36, 198, 260, 18, hwnd, nullptr, nullptr, nullptr);
     state->packList = CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_NOTIFY | LBS_EXTENDEDSEL, 36, 220, 230, 420, hwnd, reinterpret_cast<HMENU>(kIdPackList), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Move Up", WS_VISIBLE | WS_CHILD, 274, 220, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveUp), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Move Down", WS_VISIBLE | WS_CHILD, 274, 254, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveDown), nullptr, nullptr);
-    CreateWindowW(L"STATIC", L"Later packs override earlier ones", WS_VISIBLE | WS_CHILD, 36, 646, 200, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Вверх", WS_VISIBLE | WS_CHILD, 274, 220, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveUp), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Вниз", WS_VISIBLE | WS_CHILD, 274, 254, 60, 28, hwnd, reinterpret_cast<HMENU>(kIdMoveDown), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Поздние паки переопределяют ранние", WS_VISIBLE | WS_CHILD, 36, 646, 200, 18, hwnd, nullptr, nullptr, nullptr);
 
-    HWND centerGroup = CreateWindowW(L"BUTTON", L"Hero Profiles", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 364, 168, 260, 520, hwnd, nullptr, nullptr, nullptr);
+    HWND centerGroup = CreateWindowW(L"BUTTON", L"Профили Героев", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 364, 168, 260, 520, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, centerGroup, true);
-    CreateWindowW(L"STATIC", L"Heroes available in selected packs", WS_VISIBLE | WS_CHILD, 380, 198, 180, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Герои доступные в выбранных паках", WS_VISIBLE | WS_CHILD, 380, 198, 180, 18, hwnd, nullptr, nullptr, nullptr);
     state->heroList = CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_NOTIFY, 380, 220, 228, 450, hwnd, reinterpret_cast<HMENU>(kIdHeroList), nullptr, nullptr);
 
-    HWND rightGroup = CreateWindowW(L"BUTTON", L"Analysis & Build Configurator", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 638, 168, 622, 520, hwnd, nullptr, nullptr, nullptr);
+    HWND rightGroup = CreateWindowW(L"BUTTON", L"Анализ и Конфигуратор Сборки", WS_VISIBLE | WS_CHILD | BS_GROUPBOX, 638, 168, 622, 520, hwnd, nullptr, nullptr, nullptr);
     ApplyFont(state, rightGroup, true);
-    CreateWindowW(L"STATIC", L"Output folder", WS_VISIBLE | WS_CHILD, 656, 198, 120, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Папка для экспорта", WS_VISIBLE | WS_CHILD, 656, 198, 120, 18, hwnd, nullptr, nullptr, nullptr);
     state->outputEdit = CreateWindowW(L"EDIT", L"C:\\Users\\PMC\\Desktop\\exports", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 656, 218, 450, 26, hwnd, reinterpret_cast<HMENU>(kIdOutputEdit), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Browse", WS_VISIBLE | WS_CHILD, 1116, 218, 92, 26, hwnd, reinterpret_cast<HMENU>(kIdBrowseOutput), nullptr, nullptr);
-    CreateWindowW(L"STATIC", L"Final VPK filename", WS_VISIBLE | WS_CHILD, 656, 252, 140, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Обзор", WS_VISIBLE | WS_CHILD, 1116, 218, 92, 26, hwnd, reinterpret_cast<HMENU>(kIdBrowseOutput), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Имя итогового VPK файла", WS_VISIBLE | WS_CHILD, 656, 252, 140, 18, hwnd, nullptr, nullptr, nullptr);
     state->packNameEdit = CreateWindowW(L"EDIT", L"hero_build_dir.vpk", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL, 656, 272, 450, 26, hwnd, reinterpret_cast<HMENU>(kIdPackName), nullptr, nullptr);
-    CreateWindowW(L"BUTTON", L"Build Merged VPK", WS_VISIBLE | WS_CHILD, 1116, 268, 120, 34, hwnd, reinterpret_cast<HMENU>(kIdExport), nullptr, nullptr);
+    CreateWindowW(L"BUTTON", L"Собрать Объединённый VPK", WS_VISIBLE | WS_CHILD, 1116, 268, 120, 34, hwnd, reinterpret_cast<HMENU>(kIdExport), nullptr, nullptr);
 
-    CreateWindowW(L"STATIC", L"Deep analysis of replacements, preview media, asset categories, and pack conflicts", WS_VISIBLE | WS_CHILD, 656, 312, 420, 18, hwnd, nullptr, nullptr, nullptr);
-    state->detailEdit = CreateWindowW(L"EDIT", L"Choose packs and a hero to inspect the merged build profile.", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL, 656, 334, 580, 250, hwnd, reinterpret_cast<HMENU>(kIdDetail), nullptr, nullptr);
-    CreateWindowW(L"STATIC", L"Activity log", WS_VISIBLE | WS_CHILD, 656, 592, 120, 18, hwnd, nullptr, nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Глубокий анализ замен, превью медиа, категорий ресурсов и конфликтов паков", WS_VISIBLE | WS_CHILD, 656, 312, 420, 18, hwnd, nullptr, nullptr, nullptr);
+    state->detailEdit = CreateWindowW(L"EDIT", L"Выберите паки и героя для проверки профиля объединённой сборки.", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL, 656, 334, 580, 250, hwnd, reinterpret_cast<HMENU>(kIdDetail), nullptr, nullptr);
+    CreateWindowW(L"STATIC", L"Журнал активности", WS_VISIBLE | WS_CHILD, 656, 592, 120, 18, hwnd, nullptr, nullptr, nullptr);
     state->logEdit = CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL, 656, 612, 580, 58, hwnd, reinterpret_cast<HMENU>(kIdLog), nullptr, nullptr);
 
     for (HWND child : {state->sourceEdit, state->packList, state->heroList, state->outputEdit, state->packNameEdit, state->detailEdit, state->logEdit}) {
@@ -499,7 +499,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
         createdState->window = hwnd;
         SetWindowLongPtrW(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(createdState));
         BuildUi(hwnd, createdState);
-        AppendLog(createdState, L"Ready. Load your train library or open a single pack.");
+        AppendLog(createdState, L"Готово. Загрузите вашу библиотеку train или откройте один пак.");
         return 0;
     }
     case WM_COMMAND: {
@@ -601,7 +601,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int showCommand) {
     HWND window = CreateWindowExW(
         0,
         className,
-        L"dppbotcpp Pack Studio",
+        L"dppbotcpp Студия Паков",
         WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX,
         CW_USEDEFAULT,
         CW_USEDEFAULT,

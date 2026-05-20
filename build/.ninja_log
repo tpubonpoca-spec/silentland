@@ -52,3 +52,10 @@
 4	56	8010155153933028	CMakeFiles/dppbotcpp_modern.dir/src/gui_modern.cpp.obj	5196bfbf04d6bc53
 4	1909	8010155529657305	CMakeFiles/dppbotcpp_modern.dir/src/gui_modern.cpp.obj	5196bfbf04d6bc53
 1909	2029	8010155548703169	dppbotcpp_modern.exe	8119c0e1a6b389ff
+9	832	8010217647226957	CMakeFiles/dppbotcpp_cli.dir/src/cli.cpp.obj	92fbed440f8f9bd7
+8	1242	8010217647211529	CMakeFiles/dppbotcpp_cli.dir/src/main.cpp.obj	d4814d0c339a87df
+1242	1356	8010217659556820	dppbotcpp_cli.exe	1337799c426547d4
+6	1946	8010217647196192	CMakeFiles/dppbotcpp_modern.dir/src/gui_modern.cpp.obj	5196bfbf04d6bc53
+1947	2063	8010217666597921	dppbotcpp_modern.exe	8119c0e1a6b389ff
+4	4033	8010217647160899	CMakeFiles/dppbotcpp.dir/src/gui_main.cpp.obj	91078a9580443b2b
+4033	4136	8010217687458628	dppbotcpp.exe	6271478d2f52b2fe

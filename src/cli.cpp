@@ -14,7 +14,7 @@ bool IsFlag(std::string_view value, std::string_view shortName, std::string_view
 
 std::string RequireValue(int argc, char** argv, int& index, std::string_view flag) {
     if (index + 1 >= argc) {
-        throw std::runtime_error("Missing value after flag: " + std::string(flag));
+        throw std::runtime_error("Отсутствует значение после флага: " + std::string(flag));
     }
     ++index;
     return argv[index];
@@ -65,31 +65,31 @@ CliOptions ParseCli(int argc, char** argv) {
             PrintUsage();
             std::exit(0);
         } else {
-            throw std::runtime_error("Unknown argument: " + std::string(arg));
+            throw std::runtime_error("Неизвестный аргумент: " + std::string(arg));
         }
     }
 
     if (options.command == "merge" || options.command == "analyze") {
         if (options.vpkPaths.empty()) {
-            throw std::runtime_error("Multi-pack commands require --packs <path1,path2,...>.");
+            throw std::runtime_error("Мульти-пак команды требуют --packs <путь1,путь2,...>.");
         }
         if (options.command == "merge") {
             if (options.hero.empty()) {
-                throw std::runtime_error("Merge command requires --hero <hero_slug>.");
+                throw std::runtime_error("Команда merge требует --hero <имя_героя>.");
             }
             if (options.outputDirectory.empty()) {
-                throw std::runtime_error("Merge command requires --output <directory>.");
+                throw std::runtime_error("Команда merge требует --output <директория>.");
             }
         }
     } else {
         if (options.vpkPath.empty()) {
-            throw std::runtime_error("You must pass --vpk <path to *_dir.vpk>.");
+            throw std::runtime_error("Вы должны указать --vpk <путь к *_dir.vpk>.");
         }
     }
 
     if (options.command == "extract") {
         if (options.outputDirectory.empty()) {
-            throw std::runtime_error("Extract mode requires --output <directory>.");
+            throw std::runtime_error("Режим extract требует --output <директория>.");
         }
     }
 
@@ -98,17 +98,17 @@ CliOptions ParseCli(int argc, char** argv) {
 
 void PrintUsage() {
     std::cout
-        << "Usage:\n"
+        << "Использование:\n"
         << "  dppbotcpp scan --vpk <pak04_dir.vpk> [--site-metadata] [--verbose]\n"
-        << "  dppbotcpp extract --vpk <pak04_dir.vpk> --output <folder> [--hero <hero_slug>] [--site-metadata]\n"
-        << "  dppbotcpp analyze --packs <pack1.vpk,pack2.vpk,...> [--hero <hero_slug>] [--json] [--verbose]\n"
-        << "  dppbotcpp merge --packs <pack1.vpk,pack2.vpk,...> --hero <hero_slug> --output <folder> [--json]\n\n"
-        << "Commands:\n"
-        << "  scan     - Analyze a single VPK pack and list heroes\n"
-        << "  extract  - Extract hero pack from a single VPK\n"
-        << "  analyze  - Analyze multiple VPK packs and show conflicts/coverage\n"
-        << "  merge    - Merge hero content from multiple VPK packs into one\n\n"
-        << "Examples:\n"
+        << "  dppbotcpp extract --vpk <pak04_dir.vpk> --output <папка> [--hero <имя_героя>] [--site-metadata]\n"
+        << "  dppbotcpp analyze --packs <pack1.vpk,pack2.vpk,...> [--hero <имя_героя>] [--json] [--verbose]\n"
+        << "  dppbotcpp merge --packs <pack1.vpk,pack2.vpk,...> --hero <имя_героя> --output <папка> [--json]\n\n"
+        << "Команды:\n"
+        << "  scan     - Анализировать один VPK пак и показать список героев\n"
+        << "  extract  - Извлечь пак героя из одного VPK\n"
+        << "  analyze  - Анализировать несколько VPK паков и показать конфликты/покрытие\n"
+        << "  merge    - Объединить контент героя из нескольких VPK паков в один\n\n"
+        << "Примеры:\n"
         << "  dppbotcpp scan --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk\n"
         << "  dppbotcpp extract --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk --output C:\\mods\\selected_pack\n"
         << "  dppbotcpp extract --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk --hero shadow_fiend --output C:\\mods\\sf_pack\n"

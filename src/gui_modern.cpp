@@ -231,7 +231,7 @@ void DrawCustomTitleBar(AppState* state, float width) {
     state->brushText->SetColor(Colors::Text.ToD2D());
     Rect titleRect = {16, 8, width - 200, 32};
     state->renderTarget->DrawText(
-        L"dppbotcpp Studio",
+        L"dppbotcpp Студия",
         17,
         state->textFormatBold,
         titleRect.ToD2D(),
@@ -401,7 +401,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int showCommand) {
     state->window = CreateWindowExW(
         0,
         className,
-        L"dppbotcpp Studio",
+        L"dppbotcpp Студия",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
         1400, 800,
