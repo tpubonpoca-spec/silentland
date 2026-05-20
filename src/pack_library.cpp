@@ -4,6 +4,7 @@
 #include "vpk_archive.hpp"
 
 #include <algorithm>
+#include <fstream>
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
@@ -222,7 +223,99 @@ std::filesystem::path ExportMergedHeroPack(const std::vector<std::filesystem::pa
         finalPath /= hero + "_merged_dir.vpk";
     }
     writer.Write(finalPath, entries);
+
+    // Export JSON report alongside VPK
+    std::filesystem::path jsonReportPath = finalPath;
+    jsonReportPath.replace_extension(".json");
+
+    std::ostringstream jsonReport;
+    jsonReport << "{\n";
+    jsonReport << "  \"export_info\": {\n";
+    jsonReport << "    \"hero\": \"" << hero << "\",\n";
+    jsonReport << "    \"vpk_file\": \"" << finalPath.filename().string() << "\",\n";
+    jsonReport << "    \"export_date\": \"2026-05-20\",\n";
+    jsonReport << "    \"merge_type\": \"multi_pack\"\n";
+    jsonReport << "  },\n";
+    jsonReport << "  \"source_packs\": [\n";
+    for (std::size_t i = 0; i < sourcePacks.size(); ++i) {
+        jsonReport << "    {\"name\": \"" << sourcePacks[i] << "\", \"priority\": " << (i + 1) << "}";
+        if (i + 1 < sourcePacks.size()) jsonReport << ",";
+        jsonReport << "\n";
+    }
+    jsonReport << "  ],\n";
+    jsonReport << "  \"statistics\": {\n";
+    jsonReport << "    \"total_seed_files\": " << totalSeedFiles << ",\n";
+    jsonReport << "    \"total_included_files\": " << totalIncludedFiles << ",\n";
+    jsonReport << "    \"merged_unique_files\": " << merged.size() << ",\n";
+    jsonReport << "    \"conflicts_count\": " << conflicts.size() << "\n";
+    jsonReport << "  },\n";
+    jsonReport << "  \"conflicts\": [\n";
+    for (std::size_t i = 0; i < conflicts.size(); ++i) {
+        jsonReport << "    \"" << conflicts[i] << "\"";
+        if (i + 1 < conflicts.size()) jsonReport << ",";
+        jsonReport << "\n";
+    }
+    jsonReport << "  ],\n";
+    jsonReport << "  \"preview_assets\": [\n";
+    idx = 0;
+    for (const auto& preview : allPreviewAssets) {
+        jsonReport << "    \"" << preview << "\"";
+        if (++idx < allPreviewAssets.size()) jsonReport << ",";
+        jsonReport << "\n";
+    }
+    jsonReport << "  ],\n";
+    jsonReport << "  \"replacement_hints\": [\n";
+    idx = 0;
+    for (const auto& hint : allReplacementHints) {
+        jsonReport << "    \"" << hint << "\"";
+        if (++idx < allReplacementHints.size()) jsonReport << ",";
+        jsonReport << "\n";
+    }
+    jsonReport << "  ]\n";
+    jsonReport << "}\n";
+
+    std::ofstream jsonFile(jsonReportPath);
+    if (jsonFile) {
+        jsonFile << jsonReport.str();
+    }
+
     return finalPath;
+}
+
+void PackLibrary::AddPack(const std::filesystem::path& packPath) {
+    packs_.push_back(packPath);
+}
+
+std::vector<std::pair<std::string, std::size_t>> PackLibrary::GetAllHeroes() const {
+    std::unordered_map<std::string, std::size_t> heroCoverage;
+
+    for (const auto& pack : packs_) {
+        try {
+            VpkArchive archive;
+            archive.Load(pack);
+            ModAnalyzer analyzer(archive);
+            const auto heroes = analyzer.DetectHeroes();
+            for (const auto& hero : heroes) {
+                heroCoverage[hero]++;
+            }
+        } catch (const std::exception&) {
+            // Skip packs that fail to load
+        }
+    }
+
+    std::vector<std::pair<std::string, std::size_t>> result(heroCoverage.begin(), heroCoverage.end());
+    std::sort(result.begin(), result.end(), [](const auto& left, const auto& right) {
+        if (left.second != right.second) {
+            return left.second > right.second;
+        }
+        return left.first < right.first;
+    });
+
+    return result;
+}
+
+MultiPackHeroReport PackLibrary::AnalyzeHero(const std::string& hero) const {
+    return AnalyzeHeroAcrossPacks(packs_, hero);
 }
 
 }  // namespace dppbot

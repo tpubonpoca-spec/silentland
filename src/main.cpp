@@ -1,10 +1,12 @@
 #include "cli.hpp"
 #include "mod_analyzer.hpp"
+#include "pack_library.hpp"
 #include "site_metadata.hpp"
 #include "vpk_archive.hpp"
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -64,6 +66,33 @@ void PrintSummary(const ScanSummary& summary) {
     }
 }
 
+void PrintMultiPackAnalysis(const MultiPackHeroReport& report, bool jsonOutput) {
+    if (jsonOutput) {
+        std::cout << "{\n";
+        std::cout << "  \"hero\": \"" << report.hero << "\",\n";
+        std::cout << "  \"source_packs\": " << report.sources.size() << ",\n";
+        std::cout << "  \"total_seed_files\": " << report.totalSeedFiles << ",\n";
+        std::cout << "  \"total_included_files\": " << report.totalIncludedFiles << ",\n";
+        std::cout << "  \"merged_unique_files\": " << report.mergedUniqueFiles << ",\n";
+        std::cout << "  \"conflicts\": " << report.conflicts.size() << "\n";
+        std::cout << "}\n";
+    } else {
+        std::cout << "Multi-pack analysis for hero: " << report.hero << "\n";
+        std::cout << "Source packs: " << report.sources.size() << "\n";
+        std::cout << "Total seed files: " << report.totalSeedFiles << "\n";
+        std::cout << "Total included files: " << report.totalIncludedFiles << "\n";
+        std::cout << "Merged unique files: " << report.mergedUniqueFiles << "\n";
+        std::cout << "Conflicts: " << report.conflicts.size() << "\n";
+
+        if (!report.conflicts.empty()) {
+            std::cout << "\nConflict details:\n";
+            for (const auto& conflict : report.conflicts) {
+                std::cout << "  - " << conflict << "\n";
+            }
+        }
+    }
+}
+
 }  // namespace
 
 }  // namespace dppbot
@@ -74,6 +103,39 @@ int main(int argc, char** argv) {
     try {
         const CliOptions options = ParseCli(argc, argv);
 
+        // Handle multi-pack commands
+        if (options.command == "analyze" || options.command == "merge") {
+            PackLibrary library;
+            for (const auto& packPath : options.vpkPaths) {
+                library.AddPack(packPath);
+            }
+
+            if (options.command == "analyze") {
+                if (options.hero.empty()) {
+                    // Show all heroes across all packs
+                    const auto allHeroes = library.GetAllHeroes();
+                    std::cout << "Heroes found across " << options.vpkPaths.size() << " packs:\n";
+                    for (const auto& [hero, count] : allHeroes) {
+                        std::cout << "  - " << hero << " (in " << count << " pack(s))\n";
+                    }
+                } else {
+                    // Analyze specific hero
+                    MultiPackHeroReport report = library.AnalyzeHero(options.hero);
+                    PrintMultiPackAnalysis(report, options.jsonOutput);
+                }
+                return 0;
+            }
+
+            if (options.command == "merge") {
+                std::cout << "Merging hero '" << options.hero << "' from " << options.vpkPaths.size() << " packs...\n";
+                const auto exportedPath = ExportMergedHeroPack(options.vpkPaths, options.hero, options.outputDirectory);
+                std::cout << "Merged pack exported to: " << exportedPath.string() << "\n";
+                std::cout << "JSON report: " << exportedPath.string().substr(0, exportedPath.string().length() - 4) << ".json\n";
+                return 0;
+            }
+        }
+
+        // Handle single-pack commands
         VpkArchive archive;
         archive.Load(options.vpkPath);
         ModAnalyzer analyzer(archive);

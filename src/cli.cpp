@@ -31,7 +31,7 @@ CliOptions ParseCli(int argc, char** argv) {
 
     int index = 1;
     const std::string first = argv[index];
-    if (first == "scan" || first == "extract") {
+    if (first == "scan" || first == "extract" || first == "merge" || first == "analyze") {
         options.command = first;
         ++index;
     }
@@ -40,12 +40,25 @@ CliOptions ParseCli(int argc, char** argv) {
         const std::string_view arg = argv[index];
         if (IsFlag(arg, "-v", "--vpk")) {
             options.vpkPath = RequireValue(argc, argv, index, arg);
+        } else if (IsFlag(arg, "-p", "--packs")) {
+            // Multi-pack mode: comma-separated list of VPK paths
+            std::string packsStr = RequireValue(argc, argv, index, arg);
+            std::size_t start = 0;
+            std::size_t end = packsStr.find(',');
+            while (end != std::string::npos) {
+                options.vpkPaths.push_back(packsStr.substr(start, end - start));
+                start = end + 1;
+                end = packsStr.find(',', start);
+            }
+            options.vpkPaths.push_back(packsStr.substr(start));
         } else if (IsFlag(arg, "-h", "--hero")) {
             options.hero = RequireValue(argc, argv, index, arg);
         } else if (IsFlag(arg, "-o", "--output")) {
             options.outputDirectory = RequireValue(argc, argv, index, arg);
         } else if (arg == "--site-metadata") {
             options.withSiteMetadata = true;
+        } else if (arg == "--json") {
+            options.jsonOutput = true;
         } else if (arg == "--verbose") {
             options.verbose = true;
         } else if (arg == "--help" || arg == "-?") {
@@ -56,8 +69,22 @@ CliOptions ParseCli(int argc, char** argv) {
         }
     }
 
-    if (options.vpkPath.empty()) {
-        throw std::runtime_error("You must pass --vpk <path to *_dir.vpk>.");
+    if (options.command == "merge" || options.command == "analyze") {
+        if (options.vpkPaths.empty()) {
+            throw std::runtime_error("Multi-pack commands require --packs <path1,path2,...>.");
+        }
+        if (options.command == "merge") {
+            if (options.hero.empty()) {
+                throw std::runtime_error("Merge command requires --hero <hero_slug>.");
+            }
+            if (options.outputDirectory.empty()) {
+                throw std::runtime_error("Merge command requires --output <directory>.");
+            }
+        }
+    } else {
+        if (options.vpkPath.empty()) {
+            throw std::runtime_error("You must pass --vpk <path to *_dir.vpk>.");
+        }
     }
 
     if (options.command == "extract") {
@@ -73,11 +100,20 @@ void PrintUsage() {
     std::cout
         << "Usage:\n"
         << "  dppbotcpp scan --vpk <pak04_dir.vpk> [--site-metadata] [--verbose]\n"
-        << "  dppbotcpp extract --vpk <pak04_dir.vpk> --output <folder> [--hero <hero_slug>] [--site-metadata]\n\n"
+        << "  dppbotcpp extract --vpk <pak04_dir.vpk> --output <folder> [--hero <hero_slug>] [--site-metadata]\n"
+        << "  dppbotcpp analyze --packs <pack1.vpk,pack2.vpk,...> [--hero <hero_slug>] [--json] [--verbose]\n"
+        << "  dppbotcpp merge --packs <pack1.vpk,pack2.vpk,...> --hero <hero_slug> --output <folder> [--json]\n\n"
+        << "Commands:\n"
+        << "  scan     - Analyze a single VPK pack and list heroes\n"
+        << "  extract  - Extract hero pack from a single VPK\n"
+        << "  analyze  - Analyze multiple VPK packs and show conflicts/coverage\n"
+        << "  merge    - Merge hero content from multiple VPK packs into one\n\n"
         << "Examples:\n"
         << "  dppbotcpp scan --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk\n"
         << "  dppbotcpp extract --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk --output C:\\mods\\selected_pack\n"
-        << "  dppbotcpp extract --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk --hero shadow_fiend --output C:\\mods\\sf_pack\n";
+        << "  dppbotcpp extract --vpk C:\\Users\\PMC\\Desktop\\pak04_dir.vpk --hero shadow_fiend --output C:\\mods\\sf_pack\n"
+        << "  dppbotcpp analyze --packs pack1_dir.vpk,pack2_dir.vpk --hero shadow_fiend --json\n"
+        << "  dppbotcpp merge --packs pack1_dir.vpk,pack2_dir.vpk --hero shadow_fiend --output C:\\mods\\merged\n";
 }
 
 }  // namespace dppbot

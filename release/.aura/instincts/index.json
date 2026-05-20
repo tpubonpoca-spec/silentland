@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "updated": "2026-05-20T20:46:14.680Z",
+  "patterns": [
+    {
+      "id": "pattern-001",
+      "category": "ui",
+      "language": "cpp",
+      "description": "pack_library.cpp — ui 패턴 (cpp)",
+      "score": 50,
+      "success_count": 1,
+      "failure_count": 0,
+      "tags": [
+        "ui",
+        "cpp"
+      ],
+      "created": "2026-05-20T20:46:02.364Z",
+      "updated": "2026-05-20T20:46:02.364Z"
+    },
+    {
+      "id": "pattern-002",
+      "category": "general",
+      "language": "cpp",
+      "description": "pack_library.cpp — general 패턴 (cpp)",
+      "score": 50,
+      "success_count": 1,
+      "failure_count": 0,
+      "tags": [
+        "cpp"
+      ],
+      "created": "2026-05-20T20:46:14.679Z",
+      "updated": "2026-05-20T20:46:14.680Z"
+    }
+  ],
+  "anti_patterns": []
+}

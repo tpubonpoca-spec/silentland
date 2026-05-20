@@ -63,11 +63,13 @@ struct SiteCatalog {
 
 struct CliOptions {
     std::filesystem::path vpkPath;
+    std::vector<std::filesystem::path> vpkPaths;  // For multi-pack commands
     std::filesystem::path outputDirectory;
     std::string command = "scan";
     std::string hero;
     bool withSiteMetadata = false;
     bool verbose = false;
+    bool jsonOutput = false;  // For machine-readable output
 };
 
 struct PackScanResult {
