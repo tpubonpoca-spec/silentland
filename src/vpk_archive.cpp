@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 
@@ -152,11 +154,6 @@ const VpkEntry* VpkArchive::Find(std::string_view normalizedPath) const {
 }
 
 std::vector<std::uint8_t> VpkArchive::ReadFile(const VpkEntry& entry) const {
-    std::ifstream stream(filePath_, std::ios::binary);
-    if (!stream) {
-        throw std::runtime_error("Failed to reopen VPK: " + filePath_.string());
-    }
-
     std::vector<std::uint8_t> data;
     data.reserve(entry.preloadData.size() + entry.length);
     data.insert(data.end(), entry.preloadData.begin(), entry.preloadData.end());
@@ -164,21 +161,39 @@ std::vector<std::uint8_t> VpkArchive::ReadFile(const VpkEntry& entry) const {
     if (entry.length == 0) {
         return data;
     }
-    if (entry.archiveIndex != kDirectoryArchiveIndex) {
-        throw std::runtime_error("External VPK archives are not present for entry: " + entry.path);
+
+    std::filesystem::path archivePath;
+    std::uint64_t baseOffset = 0;
+
+    if (entry.archiveIndex == kDirectoryArchiveIndex) {
+        archivePath = filePath_;
+        baseOffset = static_cast<std::uint64_t>(headerSize_) + static_cast<std::uint64_t>(treeSize_);
+    } else {
+        std::string dirFilename = filePath_.filename().string();
+        std::string baseName = dirFilename.substr(0, dirFilename.rfind("_dir.vpk"));
+
+        std::ostringstream chunkFilename;
+        chunkFilename << baseName << "_" << std::setfill('0') << std::setw(3) << entry.archiveIndex << ".vpk";
+
+        archivePath = filePath_.parent_path() / chunkFilename.str();
+        baseOffset = 0;
     }
 
-    const auto baseOffset = static_cast<std::uint64_t>(headerSize_) + static_cast<std::uint64_t>(treeSize_);
+    std::ifstream stream(archivePath, std::ios::binary);
+    if (!stream) {
+        throw std::runtime_error("Failed to open VPK archive: " + archivePath.string() + " for entry: " + entry.path);
+    }
+
     stream.seekg(static_cast<std::streamoff>(baseOffset + entry.offset), std::ios::beg);
     if (!stream) {
-        throw std::runtime_error("Failed to seek to VPK entry data: " + entry.path);
+        throw std::runtime_error("Failed to seek to VPK entry data in: " + archivePath.string() + " for entry: " + entry.path);
     }
 
     const std::size_t start = data.size();
     data.resize(start + entry.length);
     stream.read(reinterpret_cast<char*>(data.data() + start), static_cast<std::streamsize>(entry.length));
     if (!stream) {
-        throw std::runtime_error("Failed to read VPK entry data: " + entry.path);
+        throw std::runtime_error("Failed to read VPK entry data from: " + archivePath.string() + " for entry: " + entry.path);
     }
     return data;
 }
