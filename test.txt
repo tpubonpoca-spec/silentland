@@ -1,2 +1,0 @@
-Hello from Claude Code!
-Test commit created on 2026-05-20
