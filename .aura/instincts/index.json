@@ -1,21 +1,21 @@
 {
   "version": "1.0",
-  "updated": "2026-05-20T20:42:00.356Z",
+  "updated": "2026-05-20T21:05:53.436Z",
   "patterns": [
     {
       "id": "pattern-001",
       "category": "ui",
       "language": "cpp",
       "description": "pack_library.cpp — ui 패턴 (cpp)",
-      "score": 80,
-      "success_count": 11,
+      "score": 83,
+      "success_count": 12,
       "failure_count": 0,
       "tags": [
         "ui",
         "cpp"
       ],
       "created": "2026-05-20T20:27:29.285Z",
-      "updated": "2026-05-20T20:42:00.354Z"
+      "updated": "2026-05-20T21:05:53.432Z"
     },
     {
       "id": "pattern-003",
