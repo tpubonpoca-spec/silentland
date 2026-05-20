@@ -133,21 +133,88 @@ std::filesystem::path ExportMergedHeroPack(const std::vector<std::filesystem::pa
     }
 
     std::unordered_map<std::string, VpkWriteEntry> merged;
+    std::vector<std::string> sourcePacks;
+    std::vector<std::string> conflicts;
+    std::unordered_map<std::string, std::string> pathOwner;
+    std::unordered_set<std::string> allPreviewAssets;
+    std::unordered_set<std::string> allReplacementHints;
+    std::size_t totalSeedFiles = 0;
+    std::size_t totalIncludedFiles = 0;
+
     for (const auto& pack : packs) {
         VpkArchive archive;
         archive.Load(pack);
         ModAnalyzer analyzer(archive);
         const ScanSummary summary = analyzer.BuildHeroPack(hero);
+
+        sourcePacks.push_back(pack.filename().string());
+        totalSeedFiles += summary.seedFiles.size();
+        totalIncludedFiles += summary.includedFiles.size();
+
+        for (const auto& preview : summary.previewAssets) {
+            allPreviewAssets.insert(preview.path);
+        }
+        for (const auto& replacement : summary.replacementHints) {
+            allReplacementHints.insert(replacement.category + ": " + replacement.targetPath);
+        }
+
         for (auto& entry : analyzer.BuildPackEntries(summary)) {
+            if (entry.path == "manifest.json") {
+                continue;
+            }
+
+            auto it = pathOwner.find(entry.path);
+            if (it != pathOwner.end() && it->second != pack.filename().string()) {
+                conflicts.push_back(entry.path + " (overridden by " + pack.filename().string() + ", was " + it->second + ")");
+            }
+            pathOwner[entry.path] = pack.filename().string();
             merged[entry.path] = std::move(entry);
         }
     }
 
     std::vector<VpkWriteEntry> entries;
-    entries.reserve(merged.size());
+    entries.reserve(merged.size() + 1);
     for (auto& [path, entry] : merged) {
         entries.push_back(std::move(entry));
     }
+
+    std::ostringstream manifest;
+    manifest << "{\n";
+    manifest << "  \"hero\": \"" << hero << "\",\n";
+    manifest << "  \"merge_type\": \"multi_pack\",\n";
+    manifest << "  \"source_packs\": [";
+    for (std::size_t i = 0; i < sourcePacks.size(); ++i) {
+        if (i != 0) manifest << ", ";
+        manifest << "\"" << sourcePacks[i] << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"total_seed_files\": " << totalSeedFiles << ",\n";
+    manifest << "  \"total_included_files\": " << totalIncludedFiles << ",\n";
+    manifest << "  \"merged_unique_files\": " << merged.size() << ",\n";
+    manifest << "  \"conflicts\": [";
+    for (std::size_t i = 0; i < conflicts.size(); ++i) {
+        if (i != 0) manifest << ", ";
+        manifest << "\"" << conflicts[i] << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"preview_assets\": [";
+    std::size_t idx = 0;
+    for (const auto& preview : allPreviewAssets) {
+        if (idx++ != 0) manifest << ", ";
+        manifest << "\"" << preview << "\"";
+    }
+    manifest << "],\n";
+    manifest << "  \"replacement_hints\": [";
+    idx = 0;
+    for (const auto& hint : allReplacementHints) {
+        if (idx++ != 0) manifest << ", ";
+        manifest << "\"" << hint << "\"";
+    }
+    manifest << "]\n";
+    manifest << "}\n";
+
+    const std::string manifestText = manifest.str();
+    entries.push_back({"manifest.json", std::vector<std::uint8_t>(manifestText.begin(), manifestText.end())});
 
     VpkWriter writer;
     std::filesystem::path finalPath = outputPath;
