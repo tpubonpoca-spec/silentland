@@ -1,4 +1,5 @@
 C:/Users/PMC/silentland/build/CMakeFiles/dppbotcpp.dir
+C:/Users/PMC/silentland/build/CMakeFiles/dppbotcpp_modern.dir
 C:/Users/PMC/silentland/build/CMakeFiles/dppbotcpp_cli.dir
 C:/Users/PMC/silentland/build/CMakeFiles/edit_cache.dir
 C:/Users/PMC/silentland/build/CMakeFiles/rebuild_cache.dir
