@@ -1,0 +1,34 @@
+# Build directories
+build/
+*.exe
+*.obj
+*.o
+*.dll
+*.so
+*.dylib
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.ninja
+.ninja_*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Aura logs (keep structure, ignore logs)
+.aura/logs/*.jsonl
+.aura/logs/*.json
+
+# Keep release executables
+!release/*.exe
+!release/*.dll
