@@ -21,6 +21,10 @@
 #include <string>
 #include <optional>
 
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+
 namespace dppbot {
 
 using namespace theme;
@@ -332,12 +336,9 @@ void DrawTitleBar(AppState* state, float width) {
     auto* rt = state->renderTarget;
     auto* brush = state->brush;
 
-    // Фон title bar (полностью чёрный, без белой полосы)
+    // Фон title bar (полностью чёрный)
     brush->SetColor(colors::DeepBlack.ToD2D());
     rt->FillRectangle(D2D1::RectF(0, 0, width, sizes::TitleBarHeight), brush);
-
-    // Закрасить всё окно сверху чёрным (убрать белую полосу)
-    rt->FillRectangle(D2D1::RectF(0, -10, width, 0), brush);
 
     // Заголовок
     brush->SetColor(colors::TextPrimary.ToD2D());
@@ -350,8 +351,22 @@ void DrawTitleBar(AppState* state, float width) {
     float btnY = 0;
     float btnHeight = sizes::TitleBarHeight;
 
-    // Minimize
-    brush->SetColor(colors::TextDim.ToD2D());
+    // Minimize button
+    brush->SetColor(colors::TextSecondary.ToD2D());
+    DrawText(rt, state->fontBody, brush, L"─",
+             width - btnWidth * 3, btnY, btnWidth, btnHeight,
+             DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+    // Maximize button
+    DrawText(rt, state->fontBody, brush, L"□",
+             width - btnWidth * 2, btnY, btnWidth, btnHeight,
+             DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+    // Close button
+    brush->SetColor(colors::Error.ToD2D());
+    DrawText(rt, state->fontTitle, brush, L"×",
+             width - btnWidth, btnY, btnWidth, btnHeight,
+             DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
     DrawText(rt, state->fontBody, brush, L"─",
              width - btnWidth * 3, btnY, btnWidth, btnHeight,
              DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
@@ -769,12 +784,12 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int showCommand) {
     wc.hbrBackground = nullptr;
     RegisterClassW(&wc);
 
-    // WS_POPUP убирает системный title bar
+    // WS_POPUP убирает системный title bar, убираем WS_THICKFRAME для фиксированного размера
     state->window = CreateWindowExW(
         WS_EX_APPWINDOW,
         className,
         L"dppbotcpp Студия",
-        WS_POPUP | WS_VISIBLE | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX,
+        WS_POPUP | WS_VISIBLE | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
         1400, 800,
         nullptr, nullptr, instance, state
@@ -782,9 +797,13 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int showCommand) {
 
     if (!state->window) return -1;
 
-    // Включаем тень окна (DWM)
-    MARGINS margins = {0, 0, 0, 1};
+    // Убираем белую полосу - отключаем DWM рамку полностью
+    MARGINS margins = {0, 0, 0, 0};
     DwmExtendFrameIntoClientArea(state->window, &margins);
+
+    // Устанавливаем чёрный фон для некlient области
+    BOOL dark = TRUE;
+    DwmSetWindowAttribute(state->window, DWMWA_USE_IMMERSIVE_DARK_MODE, &dark, sizeof(dark));
 
     // Начальные логи
     state->AddLog(L"[INFO] dppbotcpp Студия запущена");

@@ -44,6 +44,11 @@ struct Button : Component {
         float hoverValue = transitions.GetHoverValue(id);
         float pressValue = transitions.GetPressValue(id);
 
+        // Если анимация не активна, используем 1.0 по умолчанию
+        if (pressValue < 0.01f) {
+            pressValue = 1.0f;
+        }
+
         // Цвет фона с интерполяцией
         Color bgColor = LerpColor(colors::Surface, colors::SurfaceElevated, hoverValue);
         brush->SetColor(bgColor.ToD2D());
