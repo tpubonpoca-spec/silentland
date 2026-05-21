@@ -38,7 +38,7 @@ target_compile_definitions(dppbotcpp_modern PRIVATE _CRT_SECURE_NO_WARNINGS WIN3
 target_compile_definitions(dppbotcpp_cli PRIVATE _CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN NOMINMAX)
 
 target_link_libraries(dppbotcpp PRIVATE winhttp comdlg32 shell32 ole32)
-target_link_libraries(dppbotcpp_modern PRIVATE winhttp comdlg32 shell32 ole32 d2d1 dwrite windowscodecs)
+target_link_libraries(dppbotcpp_modern PRIVATE winhttp comdlg32 shell32 ole32 d2d1 dwrite windowscodecs dwmapi)
 target_link_libraries(dppbotcpp_cli PRIVATE winhttp)
 
 if (MINGW)

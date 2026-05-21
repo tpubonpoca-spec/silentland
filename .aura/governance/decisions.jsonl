@@ -1,2 +1,10 @@
 {"ts":"2026-05-20T20:35:19.614Z","file":"C:\\Users\\PMC\\silentland\\.gitignore","category":"service","lines":35,"summary":"Build directories"}
 {"ts":"2026-05-20T20:40:25.762Z","file":"C:\\Users\\PMC\\silentland\\src\\gui_modern.cpp","category":"general","lines":426,"summary":"include \"pack_library.hpp\""}
+{"ts":"2026-05-20T23:19:33.979Z","file":"C:\\Users\\PMC\\silentland\\.aura\\project-profile.md","category":"general","lines":57,"summary":"Project Profile — dppbotcpp Studio"}
+{"ts":"2026-05-20T23:20:11.415Z","file":"C:\\Users\\PMC\\silentland\\.aura\\design-system.md","category":"general","lines":213,"summary":"Design System — Бездонно Чёрный Минималистичный"}
+{"ts":"2026-05-20T23:20:49.379Z","file":"C:\\Users\\PMC\\silentland\\.aura\\docs\\plan-modern-gui.md","category":"general","lines":179,"summary":"План: Современный GUI с бездонно чёрным дизайном"}
+{"ts":"2026-05-20T23:21:07.990Z","file":"C:\\Users\\PMC\\silentland\\include\\gui_theme.hpp","category":"general","lines":117,"summary":"pragma once"}
+{"ts":"2026-05-20T23:21:30.572Z","file":"C:\\Users\\PMC\\silentland\\include\\gui_rendering.hpp","category":"general","lines":188,"summary":"pragma once"}
+{"ts":"2026-05-20T23:21:52.074Z","file":"C:\\Users\\PMC\\silentland\\include\\gui_animations.hpp","category":"general","lines":241,"summary":"pragma once"}
+{"ts":"2026-05-20T23:22:35.957Z","file":"C:\\Users\\PMC\\silentland\\include\\gui_components.hpp","category":"ui","lines":361,"summary":"pragma once"}
+{"ts":"2026-05-20T23:23:43.648Z","file":"C:\\Users\\PMC\\silentland\\src\\gui_modern.cpp","category":"ui","lines":536,"summary":"include \"pack_library.hpp\""}

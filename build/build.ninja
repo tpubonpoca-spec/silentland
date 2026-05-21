@@ -211,7 +211,7 @@ build dppbotcpp_modern.exe: CXX_EXECUTABLE_LINKER__dppbotcpp_modern_Release CMak
   CONFIG = Release
   FLAGS = -O3 -DNDEBUG
   LINK_FLAGS = -mwindows -static -static-libgcc -static-libstdc++ -Wl,-Bstatic -lwinpthread -Wl,-Bdynamic
-  LINK_LIBRARIES = -lwinhttp  -lcomdlg32  -lshell32  -lole32  -ld2d1  -ldwrite  -lwindowscodecs  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lwinhttp  -lcomdlg32  -lshell32  -lole32  -ld2d1  -ldwrite  -lwindowscodecs  -ldwmapi  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\dppbotcpp_modern.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -325,7 +325,7 @@ build dppbotcpp_cli.exe: CXX_EXECUTABLE_LINKER__dppbotcpp_cli_Release CMakeFiles
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\PMC\silentland\build && C:\msys64\ucrt64\bin\cmake.exe -E echo "No interactive CMake dialog available.""
+  COMMAND = cmd.exe /C "cd /D C:\Users\PMC\silentland\build && C:\msys64\ucrt64\bin\cmake.exe -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -336,7 +336,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\PMC\silentland\build && C:\msys64\ucrt64\bin\cmake.exe --regenerate-during-build -SC:\Users\PMC\silentland -BC:\Users\PMC\silentland\build"
+  COMMAND = cmd.exe /C "cd /D C:\Users\PMC\silentland\build && C:\msys64\ucrt64\bin\cmake.exe --regenerate-during-build -SC:\Users\PMC\silentland -BC:\Users\PMC\silentland\build"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1

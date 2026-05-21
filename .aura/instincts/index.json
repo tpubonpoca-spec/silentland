@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-05-20T22:51:11.819Z",
+  "updated": "2026-05-21T00:10:55.358Z",
   "patterns": [
     {
       "id": "pattern-001",
@@ -8,14 +8,29 @@
       "language": "cpp",
       "description": "pack_library.cpp — ui 패턴 (cpp)",
       "score": 100,
-      "success_count": 27,
+      "success_count": 38,
       "failure_count": 0,
       "tags": [
         "ui",
         "cpp"
       ],
       "created": "2026-05-20T20:27:29.285Z",
-      "updated": "2026-05-20T22:51:11.816Z"
+      "updated": "2026-05-21T00:00:12.887Z"
+    },
+    {
+      "id": "pattern-004",
+      "category": "api",
+      "language": "cpp",
+      "description": "gui_modern.cpp — api 패턴 (cpp)",
+      "score": 77,
+      "success_count": 10,
+      "failure_count": 0,
+      "tags": [
+        "api",
+        "cpp"
+      ],
+      "created": "2026-05-20T20:40:25.762Z",
+      "updated": "2026-05-21T00:10:55.356Z"
     },
     {
       "id": "pattern-002",
@@ -36,30 +51,30 @@
       "category": "db",
       "language": "cpp",
       "description": "gui_main.cpp — db 패턴 (cpp)",
-      "score": 56,
-      "success_count": 3,
+      "score": 59,
+      "success_count": 4,
       "failure_count": 0,
       "tags": [
         "db",
         "cpp"
       ],
       "created": "2026-05-20T20:31:19.650Z",
-      "updated": "2026-05-20T22:47:58.424Z"
+      "updated": "2026-05-20T23:20:11.412Z"
     },
     {
-      "id": "pattern-004",
-      "category": "api",
+      "id": "pattern-006",
+      "category": "test",
       "language": "cpp",
-      "description": "gui_modern.cpp — api 패턴 (cpp)",
-      "score": 50,
-      "success_count": 1,
+      "description": "main.cpp — test 패턴 (cpp)",
+      "score": 53,
+      "success_count": 2,
       "failure_count": 0,
       "tags": [
-        "api",
+        "test",
         "cpp"
       ],
-      "created": "2026-05-20T20:40:25.762Z",
-      "updated": "2026-05-20T20:40:25.763Z"
+      "created": "2026-05-20T22:50:32.710Z",
+      "updated": "2026-05-21T00:06:32.213Z"
     },
     {
       "id": "pattern-005",
@@ -75,21 +90,6 @@
       ],
       "created": "2026-05-20T22:49:54.254Z",
       "updated": "2026-05-20T22:49:54.255Z"
-    },
-    {
-      "id": "pattern-006",
-      "category": "test",
-      "language": "cpp",
-      "description": "main.cpp — test 패턴 (cpp)",
-      "score": 50,
-      "success_count": 1,
-      "failure_count": 0,
-      "tags": [
-        "test",
-        "cpp"
-      ],
-      "created": "2026-05-20T22:50:32.710Z",
-      "updated": "2026-05-20T22:50:32.710Z"
     }
   ],
   "anti_patterns": []

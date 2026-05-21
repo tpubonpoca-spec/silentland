@@ -2,6 +2,14 @@
   {
     "type": "general-purpose",
     "promptHash": "",
+    "completedAt": "2026-05-20T23:25:58.825Z",
+    "durationSec": null,
+    "status": "completed",
+    "resultSnippet": "{}"
+  },
+  {
+    "type": "general-purpose",
+    "promptHash": "",
     "completedAt": "2026-05-20T21:31:23.078Z",
     "durationSec": null,
     "status": "completed",
