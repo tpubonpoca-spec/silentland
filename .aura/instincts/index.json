@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-05-21T00:10:55.358Z",
+  "updated": "2026-05-21T00:21:13.721Z",
   "patterns": [
     {
       "id": "pattern-001",
@@ -8,29 +8,29 @@
       "language": "cpp",
       "description": "pack_library.cpp — ui 패턴 (cpp)",
       "score": 100,
-      "success_count": 38,
+      "success_count": 49,
       "failure_count": 0,
       "tags": [
         "ui",
         "cpp"
       ],
       "created": "2026-05-20T20:27:29.285Z",
-      "updated": "2026-05-21T00:00:12.887Z"
+      "updated": "2026-05-21T00:21:13.717Z"
     },
     {
       "id": "pattern-004",
       "category": "api",
       "language": "cpp",
       "description": "gui_modern.cpp — api 패턴 (cpp)",
-      "score": 77,
-      "success_count": 10,
+      "score": 80,
+      "success_count": 11,
       "failure_count": 0,
       "tags": [
         "api",
         "cpp"
       ],
       "created": "2026-05-20T20:40:25.762Z",
-      "updated": "2026-05-21T00:10:55.356Z"
+      "updated": "2026-05-21T00:17:34.484Z"
     },
     {
       "id": "pattern-002",
@@ -51,15 +51,15 @@
       "category": "db",
       "language": "cpp",
       "description": "gui_main.cpp — db 패턴 (cpp)",
-      "score": 59,
-      "success_count": 4,
+      "score": 65,
+      "success_count": 6,
       "failure_count": 0,
       "tags": [
         "db",
         "cpp"
       ],
       "created": "2026-05-20T20:31:19.650Z",
-      "updated": "2026-05-20T23:20:11.412Z"
+      "updated": "2026-05-21T00:20:47.461Z"
     },
     {
       "id": "pattern-006",

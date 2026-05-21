@@ -9,10 +9,12 @@
 #include <d2d1.h>
 #include <dwrite.h>
 #include <dwmapi.h>
+#include <shlobj.h>
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
 #pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "shell32.lib")
 
 #include <memory>
 #include <vector>
@@ -54,13 +56,23 @@ struct AppState {
     // Данные
     PackLibrary library;
     std::vector<std::filesystem::path> loadedPacks;
-    std::vector<std::string> availableHeroes;
     std::optional<MultiPackHeroReport> currentReport;
+
+    // Логи
+    std::vector<std::wstring> logs;
 
     // Состояние
     int currentTab = 0;
     bool needsRedraw = true;
     POINT lastMousePos = {};
+
+    void AddLog(const std::wstring& message) {
+        logs.push_back(message);
+        if (logs.size() > 100) {
+            logs.erase(logs.begin());
+        }
+        needsRedraw = true;
+    }
 };
 
 std::wstring ToWide(const std::string& str) {
@@ -76,7 +88,114 @@ std::string ToUtf8(const std::wstring& str) {
     int size = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
     std::string result(size, '\0');
     WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, result.data(), size, nullptr, nullptr);
+    result.resize(size - 1); // Remove null terminator
     return result;
+}
+
+std::wstring BrowseForFolder(HWND hwnd) {
+    BROWSEINFOW bi = {};
+    bi.hwndOwner = hwnd;
+    bi.lpszTitle = L"Выберите папку с паками";
+    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+
+    LPITEMIDLIST pidl = SHBrowseForFolderW(&bi);
+    if (!pidl) return {};
+
+    wchar_t path[MAX_PATH];
+    if (!SHGetPathFromIDListW(pidl, path)) {
+        CoTaskMemFree(pidl);
+        return {};
+    }
+
+    CoTaskMemFree(pidl);
+    return path;
+}
+
+void LoadLibrary(AppState* state, const std::wstring& folderPath) {
+    if (folderPath.empty()) return;
+
+    state->AddLog(L"[INFO] Загрузка библиотеки из: " + folderPath);
+
+    std::filesystem::path libPath = folderPath;
+
+    // Найти все VPK паки в директории
+    auto packs = DiscoverVpkPacks(libPath);
+
+    state->AddLog(L"[INFO] Найдено VPK файлов: " + std::to_wstring(packs.size()));
+
+    // Добавить паки в библиотеку
+    state->library = PackLibrary();
+    for (const auto& pack : packs) {
+        state->library.AddPack(pack);
+    }
+
+    // Обновить список паков
+    state->loadedPacks = packs;
+    state->lists[0].items.clear();
+
+    for (const auto& pack : packs) {
+        ListItem item;
+        item.text = ToWide(pack.filename().string());
+        item.secondaryText = ToWide(pack.parent_path().filename().string());
+        item.index = static_cast<int>(state->lists[0].items.size());
+        state->lists[0].items.push_back(item);
+    }
+
+    state->AddLog(L"[SUCCESS] Загружено паков: " + std::to_wstring(state->loadedPacks.size()));
+
+    // Обновить список героев
+    auto heroesWithCount = state->library.GetAllHeroes();
+    state->lists[1].items.clear();
+
+    for (const auto& [hero, count] : heroesWithCount) {
+        ListItem item;
+        item.text = ToWide(hero);
+        item.secondaryText = std::to_wstring(count) + L" паков";
+        item.index = static_cast<int>(state->lists[1].items.size());
+        state->lists[1].items.push_back(item);
+    }
+
+    state->AddLog(L"[INFO] Найдено героев: " + std::to_wstring(heroesWithCount.size()));
+
+    state->needsRedraw = true;
+}
+
+void AnalyzeHero(AppState* state, const std::string& heroName) {
+    if (heroName.empty() || state->loadedPacks.empty()) return;
+
+    state->AddLog(L"[INFO] Анализ героя: " + ToWide(heroName));
+
+    state->currentReport = state->library.AnalyzeHero(heroName);
+
+    if (!state->currentReport.has_value()) {
+        state->cards[0].content = {L"Ошибка анализа"};
+        state->AddLog(L"[ERROR] Не удалось проанализировать героя");
+        state->needsRedraw = true;
+        return;
+    }
+
+    auto& report = state->currentReport.value();
+    state->cards[0].content.clear();
+    state->cards[0].content.push_back(L"Герой: " + ToWide(report.hero));
+    state->cards[0].content.push_back(L"Исходных файлов: " + std::to_wstring(report.totalSeedFiles));
+    state->cards[0].content.push_back(L"Включённых файлов: " + std::to_wstring(report.totalIncludedFiles));
+    state->cards[0].content.push_back(L"Уникальных файлов: " + std::to_wstring(report.mergedUniqueFiles));
+    state->cards[0].content.push_back(L"Конфликтов: " + std::to_wstring(report.conflicts.size()));
+
+    state->AddLog(L"[SUCCESS] Анализ завершён. Конфликтов: " + std::to_wstring(report.conflicts.size()));
+
+    if (!report.conflicts.empty()) {
+        state->cards[0].content.push_back(L"");
+        state->cards[0].content.push_back(L"Конфликты:");
+        for (size_t i = 0; i < std::min(size_t(5), report.conflicts.size()); ++i) {
+            state->cards[0].content.push_back(L"  " + ToWide(report.conflicts[i]));
+        }
+        if (report.conflicts.size() > 5) {
+            state->cards[0].content.push_back(L"  ... и ещё " + std::to_wstring(report.conflicts.size() - 5));
+        }
+    }
+
+    state->needsRedraw = true;
 }
 
 HRESULT CreateDeviceResources(AppState* state) {
@@ -132,10 +251,43 @@ void InitializeUI(AppState* state, float width, float height) {
     loadBtn.height = sizes::ButtonHeightMedium;
     loadBtn.text = L"Загрузить библиотеку";
     loadBtn.onClick = [state]() {
-        // TODO: Открыть диалог выбора папки
-        state->needsRedraw = true;
+        std::wstring folder = BrowseForFolder(state->window);
+        if (!folder.empty()) {
+            LoadLibrary(state, folder);
+        }
     };
     state->buttons.push_back(loadBtn);
+
+    // Кнопка анализа
+    Button analyzeBtn;
+    analyzeBtn.id = "btn_analyze";
+    analyzeBtn.x = loadBtn.x + loadBtn.width + spacing::Space16;
+    analyzeBtn.y = loadBtn.y;
+    analyzeBtn.width = 150;
+    analyzeBtn.height = sizes::ButtonHeightMedium;
+    analyzeBtn.text = L"Анализировать";
+    analyzeBtn.onClick = [state]() {
+        if (state->lists[1].selectedIndex >= 0 &&
+            state->lists[1].selectedIndex < static_cast<int>(state->lists[1].items.size())) {
+            std::string heroName = ToUtf8(state->lists[1].items[state->lists[1].selectedIndex].text);
+            AnalyzeHero(state, heroName);
+        }
+    };
+    state->buttons.push_back(analyzeBtn);
+
+    // Кнопка экспорта
+    Button exportBtn;
+    exportBtn.id = "btn_export";
+    exportBtn.x = analyzeBtn.x + analyzeBtn.width + spacing::Space16;
+    exportBtn.y = loadBtn.y;
+    exportBtn.width = 180;
+    exportBtn.height = sizes::ButtonHeightMedium;
+    exportBtn.text = L"Экспорт VPK";
+    exportBtn.onClick = [state]() {
+        // TODO: Диалог сохранения и экспорт
+        state->needsRedraw = true;
+    };
+    state->buttons.push_back(exportBtn);
 
     // Список паков
     List packList;
@@ -157,9 +309,9 @@ void InitializeUI(AppState* state, float width, float height) {
     heroList.width = 300;
     heroList.height = 400;
     heroList.onSelectionChanged = [state](int index) {
-        if (index >= 0 && index < static_cast<int>(state->availableHeroes.size())) {
-            // TODO: Анализировать героя
-            state->needsRedraw = true;
+        if (index >= 0 && index < static_cast<int>(state->lists[1].items.size())) {
+            std::string heroName = ToUtf8(state->lists[1].items[index].text);
+            AnalyzeHero(state, heroName);
         }
     };
     state->lists.push_back(heroList);
@@ -180,9 +332,12 @@ void DrawTitleBar(AppState* state, float width) {
     auto* rt = state->renderTarget;
     auto* brush = state->brush;
 
-    // Фон title bar
+    // Фон title bar (полностью чёрный, без белой полосы)
     brush->SetColor(colors::DeepBlack.ToD2D());
     rt->FillRectangle(D2D1::RectF(0, 0, width, sizes::TitleBarHeight), brush);
+
+    // Закрасить всё окно сверху чёрным (убрать белую полосу)
+    rt->FillRectangle(D2D1::RectF(0, -10, width, 0), brush);
 
     // Заголовок
     brush->SetColor(colors::TextPrimary.ToD2D());
@@ -275,7 +430,7 @@ void OnRender(AppState* state) {
 
     // Компоненты в зависимости от таба
     if (state->currentTab == 0) {
-        // Паки
+        // Паки - основная вкладка
         for (auto& btn : state->buttons) {
             btn.Draw(rt, state->brush, state->fontBody, state->transitions);
         }
@@ -284,6 +439,114 @@ void OnRender(AppState* state) {
         }
         for (auto& card : state->cards) {
             card.Draw(rt, state->brush, state->shadowBrush, state->fontTitle, state->fontBody);
+        }
+    }
+    else if (state->currentTab == 1) {
+        // Анализ - детальная информация
+        if (state->currentReport.has_value()) {
+            auto& report = state->currentReport.value();
+
+            float cardY = contentY + spacing::Space24;
+            float cardWidth = width - spacing::Space48;
+
+            // Карточка общей информации
+            state->brush->SetColor(colors::SurfaceElevated.ToD2D());
+            DrawRoundedRect(rt, state->brush, spacing::Space24, cardY, cardWidth, 150, sizes::CardRadius);
+
+            state->brush->SetColor(colors::TextPrimary.ToD2D());
+            DrawText(rt, state->fontTitle, state->brush, (L"Анализ: " + ToWide(report.hero)).c_str(),
+                     spacing::Space24 + spacing::Space16, cardY + spacing::Space16,
+                     cardWidth - spacing::Space32, 30,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+            state->brush->SetColor(colors::TextSecondary.ToD2D());
+            float infoY = cardY + 60;
+            DrawText(rt, state->fontBody, state->brush,
+                     (L"Исходных файлов: " + std::to_wstring(report.totalSeedFiles)).c_str(),
+                     spacing::Space24 + spacing::Space16, infoY, cardWidth - spacing::Space32, 20,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+            DrawText(rt, state->fontBody, state->brush,
+                     (L"Включённых файлов: " + std::to_wstring(report.totalIncludedFiles)).c_str(),
+                     spacing::Space24 + spacing::Space16, infoY + 25, cardWidth - spacing::Space32, 20,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+            DrawText(rt, state->fontBody, state->brush,
+                     (L"Конфликтов: " + std::to_wstring(report.conflicts.size())).c_str(),
+                     spacing::Space24 + spacing::Space16, infoY + 50, cardWidth - spacing::Space32, 20,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+            // Список конфликтов
+            if (!report.conflicts.empty()) {
+                float conflictsY = cardY + 180;
+                state->brush->SetColor(colors::SurfaceElevated.ToD2D());
+                DrawRoundedRect(rt, state->brush, spacing::Space24, conflictsY,
+                               cardWidth, contentHeight - 210, sizes::CardRadius);
+
+                state->brush->SetColor(colors::TextPrimary.ToD2D());
+                DrawText(rt, state->fontTitle, state->brush, L"Конфликты",
+                         spacing::Space24 + spacing::Space16, conflictsY + spacing::Space16,
+                         cardWidth - spacing::Space32, 30,
+                         DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+                state->brush->SetColor(colors::TextSecondary.ToD2D());
+                float listY = conflictsY + 60;
+                for (size_t i = 0; i < std::min(size_t(15), report.conflicts.size()); ++i) {
+                    DrawText(rt, state->fontSmall, state->brush, ToWide(report.conflicts[i]).c_str(),
+                             spacing::Space24 + spacing::Space24, listY + i * 22,
+                             cardWidth - spacing::Space48, 20,
+                             DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+                }
+            }
+        } else {
+            state->brush->SetColor(colors::TextDim.ToD2D());
+            DrawText(rt, state->fontBody, state->brush, L"Выберите героя для анализа",
+                     0, contentY + contentHeight / 2 - 10, width, 20,
+                     DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        }
+    }
+    else if (state->currentTab == 2) {
+        // Логи
+        float logY = contentY + spacing::Space24;
+        float logWidth = width - spacing::Space48;
+        float logHeight = contentHeight - spacing::Space48;
+
+        state->brush->SetColor(colors::SurfaceElevated.ToD2D());
+        DrawRoundedRect(rt, state->brush, spacing::Space24, logY, logWidth, logHeight, sizes::CardRadius);
+
+        state->brush->SetColor(colors::TextPrimary.ToD2D());
+        DrawText(rt, state->fontTitle, state->brush, L"Логи операций",
+                 spacing::Space24 + spacing::Space16, logY + spacing::Space16,
+                 logWidth - spacing::Space32, 30,
+                 DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+
+        // Отображение логов
+        float lineY = logY + 60;
+        int startIdx = std::max(0, static_cast<int>(state->logs.size()) - 20);
+        for (int i = startIdx; i < static_cast<int>(state->logs.size()); ++i) {
+            Color logColor = colors::TextSecondary;
+            if (state->logs[i].find(L"[ERROR]") != std::wstring::npos) {
+                logColor = colors::Error;
+            } else if (state->logs[i].find(L"[SUCCESS]") != std::wstring::npos) {
+                logColor = colors::Success;
+            } else if (state->logs[i].find(L"[INFO]") != std::wstring::npos) {
+                logColor = colors::TextSecondary;
+            }
+
+            state->brush->SetColor(logColor.ToD2D());
+            DrawText(rt, state->fontSmall, state->brush, state->logs[i].c_str(),
+                     spacing::Space24 + spacing::Space16, lineY,
+                     logWidth - spacing::Space32, 18,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+            lineY += 22;
+        }
+
+        if (state->logs.empty()) {
+            state->brush->SetColor(colors::TextDim.ToD2D());
+            DrawText(rt, state->fontBody, state->brush, L"Логи пусты",
+                     spacing::Space24 + spacing::Space16, logY + 60,
+                     logWidth - spacing::Space32, 20,
+                     DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
         }
     }
 
@@ -522,6 +785,11 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE, LPSTR, int showCommand) {
     // Включаем тень окна (DWM)
     MARGINS margins = {0, 0, 0, 1};
     DwmExtendFrameIntoClientArea(state->window, &margins);
+
+    // Начальные логи
+    state->AddLog(L"[INFO] dppbotcpp Студия запущена");
+    state->AddLog(L"[INFO] Версия: 1.0.0");
+    state->AddLog(L"[INFO] Готово к работе");
 
     ShowWindow(state->window, showCommand);
     UpdateWindow(state->window);
